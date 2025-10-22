@@ -1,11 +1,18 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import { useThemeContext } from "../contexts/themeContextProvider";
 
 const Navbar = () => {
   const { t, i18n } = useTranslation();
 
   const [active, setActive] = useState(0);
+
+  const { theme, setTheme } = useThemeContext();
+
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
 
   const changeLanguage = (lng: string, id: number) => {
     i18n.changeLanguage(lng);
@@ -41,6 +48,9 @@ const Navbar = () => {
             {language.text}
           </span>
         ))}
+        <button onClick={toggleTheme}>
+          {theme === "dark" ? "Dark" : "Light"}
+        </button>
       </nav>
     </div>
   );

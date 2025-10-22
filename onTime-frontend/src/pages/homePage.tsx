@@ -1,7 +1,9 @@
+import { useThemeContext } from "../components/contexts/themeContextProvider";
 import MapComponent from "../components/map/MapComponent";
 
 const HomePage = () => {
-  return <MapComponent />;
+  const { theme } = useThemeContext();
+  return <MapComponent theme={theme} />;
 };
 
 export default HomePage;
