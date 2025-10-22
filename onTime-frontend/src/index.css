@@ -1,1 +1,16 @@
 @import "tailwindcss";
+
+#navbar > * {
+  margin: 0.5rem;
+  border-radius: 5px;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid white;
+  transition: all 0.3s ease-in-out;
+  background: rgba(0, 0, 0, 0.75);
+}
+
+#navbar > *:is(:hover, :focus),
+.navbar__active {
+  box-shadow: 0 0 4px 2px white;
+}

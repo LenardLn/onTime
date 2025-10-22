@@ -11,8 +11,10 @@
     "tailwind:init": "tailwindcss init -p"
   },
   "dependencies": {
+    "@vis.gl/react-maplibre": "^8.1.0",
     "axios": "^1.12.2",
     "i18next": "^25.6.0",
+    "maplibre-gl": "^5.9.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-i18next": "^16.1.2",

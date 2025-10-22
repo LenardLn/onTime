@@ -6,6 +6,7 @@ import router from "./routes";
 import "../i18n";
 import { I18nextProvider } from "react-i18next";
 import i18n from "../i18n";
+import "maplibre-gl/dist/maplibre-gl.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
