@@ -1,4 +1,4 @@
-import { useThemeContext } from "../components/contexts/themeContextProvider";
+import { useThemeContext } from "../components/contexts/ThemeContextProvider";
 import MapComponent from "../components/map/MapComponent";
 
 const HomePage = () => {

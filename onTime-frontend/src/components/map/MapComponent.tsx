@@ -1,6 +1,6 @@
 import { Map, Marker, NavigationControl } from "@vis.gl/react-maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
-import type { Theme } from "../contexts/themeContextProvider";
+import type { Theme } from "../contexts/ThemeContextProvider";
 
 interface MapComponentProps {
   theme: Theme;

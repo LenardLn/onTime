@@ -1,4 +1,10 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 
 export type Theme = "light" | "dark";
 
@@ -16,7 +22,16 @@ interface ThemeContextProviderProps {
 export const ThemeContextProvider = ({
   children,
 }: ThemeContextProviderProps) => {
-  const [theme, setTheme] = useState<Theme>("dark");
+  const [theme, setTheme] = useState<Theme>(() => {
+    const stored = localStorage.getItem("theme");
+    return stored === "light" || stored === "dark" ? stored : "dark";
+  });
+
+  useEffect(() => {
+    document.body.classList.remove("light", "dark");
+    document.body.classList.add(theme);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>
