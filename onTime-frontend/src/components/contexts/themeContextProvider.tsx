@@ -5,8 +5,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-
-export type Theme = "light" | "dark";
+import type { Theme } from "../../entities/theme";
 
 interface ThemeContextProps {
   theme: Theme;
