@@ -14,6 +14,7 @@ app = FastAPI()
 DATABASE_URL = os.getenv("DATABASE_URL")
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 
+
 @app.post("/locations")
 async def save_location(request: Request):
     """Fogadja az OwnTracks JSON-t és DB-be menti"""
@@ -73,6 +74,7 @@ async def save_location(request: Request):
     except Exception as e:
         logger.error(f"Error: {e}")
         return {"status": "error", "message": str(e)}
+
 
 @app.get("/ping")
 def ping():

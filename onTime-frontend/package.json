@@ -11,14 +11,19 @@
     "tailwind:init": "tailwindcss init -p"
   },
   "dependencies": {
+    "@vis.gl/react-maplibre": "^8.1.0",
     "axios": "^1.12.2",
+    "i18next": "^25.6.0",
+    "maplibre-gl": "^5.9.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-i18next": "^16.1.2",
     "react-router-dom": "^7.9.4"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
     "@tailwindcss/postcss": "^4.1.14",
+    "@types/i18next": "^12.1.0",
     "@types/node": "^24.6.0",
     "@types/react": "^19.1.16",
     "@types/react-dom": "^19.1.9",
