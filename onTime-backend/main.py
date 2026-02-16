@@ -1,3 +1,4 @@
+from models.LocationModel import LocationUpdate
 from fastapi import FastAPI, Request
 import logging
 import os
@@ -16,27 +17,31 @@ engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 
 
 @app.post("/locations")
-async def save_location(request: Request):
+async def save_location(data: LocationUpdate):
     """Fogadja az OwnTracks JSON-t és DB-be menti"""
     try:
-        data = await request.json()
+        # data = await request.json()
         logger.info(f"JSON body: {data}")
 
         # Mezők kiszedése
-        topic = data.get("topic", "")
+        # topic = data.get("topic", "")
+        topic = getattr(data, "topic", "")
+        
         user_id, device_id = "unknown", "unknown"
-        parts = topic.split("/")
-        if len(parts) >= 3:
-            user_id = parts[1]
-            device_id = parts[2]
+        
+        if topic:
+            parts = topic.split("/")
+            if len(parts) >= 3:
+                user_id = parts[1]
+                device_id = parts[2]
 
-        lat = data.get("lat")
-        lon = data.get("lon")
-        tst = data.get("tst")
-        batt = data.get("batt")
-        acc = data.get("acc")
-        alt = data.get("alt")
-        speed = data.get("vel")
+        lat = data.lat
+        lon = data.lon
+        tst = data.tst
+        batt = data.batt
+        acc = data.acc
+        alt = data.alt
+        speed = data.vel
 
         # Idő konvertálása UTC → Europe/Bucharest
         if tst:
@@ -45,6 +50,7 @@ async def save_location(request: Request):
             tst_local = utc_dt.astimezone(local_tz).replace(tzinfo=None)
         else:
             tst_local = None
+            
         # DB insert
         with engine.connect() as conn:
             conn.execute(
