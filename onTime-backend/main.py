@@ -5,13 +5,16 @@ import os
 from sqlalchemy import create_engine, text
 from datetime import datetime
 import pytz
+from dotenv import load_dotenv
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-# DB kapcsolat (Render / Neon PostgreSQL)
+load_dotenv()
+
 DATABASE_URL = os.getenv("DATABASE_URL")
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 
@@ -26,9 +29,9 @@ async def save_location(data: LocationUpdate):
         # Mezők kiszedése
         # topic = data.get("topic", "")
         topic = getattr(data, "topic", "")
-        
+
         user_id, device_id = "unknown", "unknown"
-        
+
         if topic:
             parts = topic.split("/")
             if len(parts) >= 3:
@@ -43,14 +46,13 @@ async def save_location(data: LocationUpdate):
         alt = data.alt
         speed = data.vel
 
-        # Idő konvertálása UTC → Europe/Bucharest
         if tst:
             utc_dt = datetime.utcfromtimestamp(tst).replace(tzinfo=pytz.utc)
             local_tz = pytz.timezone("Europe/Bucharest")
             tst_local = utc_dt.astimezone(local_tz).replace(tzinfo=None)
         else:
             tst_local = None
-            
+
         # DB insert
         with engine.connect() as conn:
             conn.execute(
