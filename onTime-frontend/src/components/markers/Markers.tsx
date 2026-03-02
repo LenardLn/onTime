@@ -1,43 +1,49 @@
-
-import {
-
-    Marker,
-    type MarkerEvent,
-
-} from "@vis.gl/react-maplibre";
+import { Marker, type MarkerEvent } from "@vis.gl/react-maplibre";
 import MarkerInfoCard from "../marker-info-card/MarkerInfoCard";
 
 export type MapMarker = {
-    latitude: number;
-    longitude: number;
+  latitude: number;
+  longitude: number;
 };
 
 interface MarkersProps {
-    markers: MapMarker[];
-    handleMarkers: (e: MarkerEvent<MouseEvent>, marker: MapMarker) => void,
-    selectedMarkers: MapMarker[]
+  markers: MapMarker[];
+  handleMarkers: (e: MarkerEvent<MouseEvent>, marker: MapMarker) => void;
+  selectedMarkers: MapMarker[];
+  onDragEnd: (
+    oldMarker: MapMarker,
+    newCoords: { lat: number; lng: number },
+  ) => void;
 }
 
-function Markers({ markers, handleMarkers, selectedMarkers }: MarkersProps) {
-    return (
-        <div>
-            {markers.map((marker) => (
-                <Marker
-                    key={`${marker.latitude}-${marker.longitude}`}
-                    longitude={marker.longitude}
-                    latitude={marker.latitude}
-                    color="red"
-                    onClick={(e) => {
-                        handleMarkers(e, marker)
-                    }}
-                >
-                    {selectedMarkers.includes(marker) && (
-                        <MarkerInfoCard />
-                    )}
-                </Marker>
-            ))}
-        </div>
-    )
-}
+const Markers = ({
+  markers,
+  handleMarkers,
+  selectedMarkers,
+  onDragEnd,
+}: MarkersProps) => {
+  return (
+    <div>
+      {markers.map((marker) => (
+        <Marker
+          key={`${marker.latitude}-${marker.longitude}`}
+          longitude={marker.longitude}
+          latitude={marker.latitude}
+          color="red"
+          draggable
+          onClick={(e) => {
+            handleMarkers(e, marker);
+          }}
+          onDragEnd={(e) => {
+            const { lat, lng } = e.lngLat;
+            onDragEnd(marker, { lat, lng });
+          }}
+        >
+          {selectedMarkers.includes(marker) && <MarkerInfoCard />}
+        </Marker>
+      ))}
+    </div>
+  );
+};
 
-export default Markers
+export default Markers;

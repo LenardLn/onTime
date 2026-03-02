@@ -17,8 +17,6 @@ interface MapComponentProps {
   theme: Theme;
 }
 
-
-
 const MapComponent = ({ theme }: MapComponentProps) => {
   const bounds: [[number, number], [number, number]] = [
     [23.439274, 47.617155], // SW [lng, lat]
@@ -35,35 +33,53 @@ const MapComponent = ({ theme }: MapComponentProps) => {
     setMarkers((prev) => [...prev, newMarker]);
   };
 
-  const handleOpenedMarkers = (e: MarkerEvent<MouseEvent>, marker: MapMarker) => {
+  const handleMarkerDragEnd = (
+    oldMarker: MapMarker,
+    newCoords: { lat: number; lng: number },
+  ) => {
+    setMarkers((prev) =>
+      prev.map((m) =>
+        m.latitude === oldMarker.latitude && m.longitude === oldMarker.longitude
+          ? { latitude: newCoords.lat, longitude: newCoords.lng }
+          : m,
+      ),
+    );
+  };
+
+  const handleOpenedMarkers = (
+    e: MarkerEvent<MouseEvent>,
+    marker: MapMarker,
+  ) => {
     e.originalEvent.stopPropagation();
     setSelectedMarker((prev) => {
       const exists = prev.some(
-        (m) => m.latitude === marker.latitude && m.longitude === marker.longitude
+        (m) =>
+          m.latitude === marker.latitude && m.longitude === marker.longitude,
       );
       if (exists) {
         return prev.filter(
-          (m) => m.latitude !== marker.latitude || m.longitude !== marker.longitude
+          (m) =>
+            m.latitude !== marker.latitude || m.longitude !== marker.longitude,
         );
       }
       return [...prev, marker];
     });
-  }
+  };
 
   const routeGeoJSON: FeatureCollection<LineString> = {
     type: "FeatureCollection",
     features:
       markers.length > 1
         ? [
-          {
-            type: "Feature",
-            geometry: {
-              type: "LineString",
-              coordinates: markers.map((m) => [m.longitude, m.latitude]),
+            {
+              type: "Feature",
+              geometry: {
+                type: "LineString",
+                coordinates: markers.map((m) => [m.longitude, m.latitude]),
+              },
+              properties: {},
             },
-            properties: {},
-          },
-        ]
+          ]
         : [],
   };
 
@@ -90,6 +106,7 @@ const MapComponent = ({ theme }: MapComponentProps) => {
           markers={markers}
           handleMarkers={handleOpenedMarkers}
           selectedMarkers={selectedMarker}
+          onDragEnd={handleMarkerDragEnd}
         />
         {markers.length > 1 && (
           <Source id="route" type="geojson" data={routeGeoJSON}>
