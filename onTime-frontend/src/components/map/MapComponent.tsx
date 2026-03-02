@@ -1,30 +1,31 @@
 import {
   Map,
-  Marker,
   NavigationControl,
   Source,
   Layer,
   type MapLayerMouseEvent,
+  type MarkerEvent,
 } from "@vis.gl/react-maplibre";
 import type { FeatureCollection, LineString } from "geojson";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Theme } from "../../entities/theme";
 import { useState } from "react";
+import type { MapMarker } from "../markers/Markers";
+import Markers from "../markers/Markers";
 
 interface MapComponentProps {
   theme: Theme;
 }
 
-type MapMarker = {
-  latitude: number;
-  longitude: number;
-};
+
 
 const MapComponent = ({ theme }: MapComponentProps) => {
   const bounds: [[number, number], [number, number]] = [
     [23.439274, 47.617155], // SW [lng, lat]
     [23.729459, 47.686301], // NE [lng, lat]
   ];
+
+  const [selectedMarker, setSelectedMarker] = useState<MapMarker[]>([]);
 
   const [markers, setMarkers] = useState<MapMarker[]>([]);
 
@@ -34,20 +35,35 @@ const MapComponent = ({ theme }: MapComponentProps) => {
     setMarkers((prev) => [...prev, newMarker]);
   };
 
+  const handleOpenedMarkers = (e: MarkerEvent<MouseEvent>, marker: MapMarker) => {
+    e.originalEvent.stopPropagation();
+    setSelectedMarker((prev) => {
+      const exists = prev.some(
+        (m) => m.latitude === marker.latitude && m.longitude === marker.longitude
+      );
+      if (exists) {
+        return prev.filter(
+          (m) => m.latitude !== marker.latitude || m.longitude !== marker.longitude
+        );
+      }
+      return [...prev, marker];
+    });
+  }
+
   const routeGeoJSON: FeatureCollection<LineString> = {
     type: "FeatureCollection",
     features:
       markers.length > 1
         ? [
-            {
-              type: "Feature",
-              geometry: {
-                type: "LineString",
-                coordinates: markers.map((m) => [m.longitude, m.latitude]),
-              },
-              properties: {},
+          {
+            type: "Feature",
+            geometry: {
+              type: "LineString",
+              coordinates: markers.map((m) => [m.longitude, m.latitude]),
             },
-          ]
+            properties: {},
+          },
+        ]
         : [],
   };
 
@@ -70,18 +86,11 @@ const MapComponent = ({ theme }: MapComponentProps) => {
         onClick={addMarker}
       >
         <NavigationControl position="top-right" />
-
-        {markers.map((marker) => (
-          <Marker
-            key={marker.latitude}
-            longitude={marker.longitude}
-            latitude={marker.latitude}
-            color="red"
-            className="z-10"
-            onClick={(e) => console.log(e)}
-          />
-        ))}
-
+        <Markers
+          markers={markers}
+          handleMarkers={handleOpenedMarkers}
+          selectedMarkers={selectedMarker}
+        />
         {markers.length > 1 && (
           <Source id="route" type="geojson" data={routeGeoJSON}>
             <Layer
