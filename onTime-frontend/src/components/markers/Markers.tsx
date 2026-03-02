@@ -5,7 +5,7 @@ import {
     type MarkerEvent,
 
 } from "@vis.gl/react-maplibre";
-import MarkerInfoCard from "../markerInfoCard/MarkerInfoCard";
+import MarkerInfoCard from "../marker-info-card/MarkerInfoCard";
 
 export type MapMarker = {
     latitude: number;
