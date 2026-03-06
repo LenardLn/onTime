@@ -5,7 +5,7 @@ interface CotainerProps {
     className?: string
 }
 
-function Container({ children, className }: CotainerProps) {
+const Container = ({ children, className }: CotainerProps) => {
     return (
         <div className={`${className} flex items-center justify-center`}>
             {children}
