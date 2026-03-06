@@ -2,5 +2,15 @@
   "homePage": {
     "home": "Acasă",
     "login": "Logare"
+  },
+  "registerPage": {
+    "register": "Înregistrare",
+    "email": "Email",
+    "password": "Parolă",
+    "confirmPassword": "Confirmă parola"
+  },
+  "errors": {
+    "isRequired": "{{field}} este obligatoriu",
+     "passwordsDoNotMatch": "Parolele nu se potrivesc"
   }
 }
