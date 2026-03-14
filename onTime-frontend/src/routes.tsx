@@ -3,16 +3,13 @@ import Layout from "./pages/layout";
 import ErrorPage from "./pages/errorPage";
 import HomePage from "./pages/homePage";
 import RegisterPage from "./pages/registerPage";
-import { useAuthContext } from "./context/AuthContext";
+import { useAuthContext } from "./components/contexts/AuthContext";
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-
   const { isAuthenticated } = useAuthContext();
 
-  return (
-    true || isAuthenticated ? children : <Navigate to={"/"} replace />
-  )
-}
+  return true || isAuthenticated ? children : <Navigate to={"/"} replace />;
+};
 
 const router = createBrowserRouter([
   {
@@ -23,9 +20,11 @@ const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       {
         path: "/admin/register",
-        element: <PrivateRoute>
-          <RegisterPage />
-        </PrivateRoute>
+        element: (
+          <PrivateRoute>
+            <RegisterPage />
+          </PrivateRoute>
+        ),
       },
     ],
   },

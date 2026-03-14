@@ -21,6 +21,8 @@ html {
   --color-hover: #e5e7eb;
   /* --color-focus: #238636; */
   --color-shadow: rgba(255, 255, 255, 0.7);
+
+  /* shadcn */
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
