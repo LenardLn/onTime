@@ -37,7 +37,7 @@ const Navbar = () => {
 
   return (
     <div className="flex absolute top-0 z-20 w-full">
-      <nav id="navbar" className="flex gap-4 mr-5">
+      <nav id="navbar" className="flex gap-4 mr-5 flex-wrap">
         <Link to="/">{t("homePage.home")}</Link>
         <Link to="/login">{t("homePage.login")}</Link>
 
