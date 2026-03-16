@@ -13,6 +13,9 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def hash_password(password: str):
+    MAX_BCRYPT_LEN = 72
+    if len(password.encode("utf-8")) > MAX_BCRYPT_LEN:
+        password = password[:MAX_BCRYPT_LEN]
     return pwd_context.hash(password)
 
 
