@@ -44,7 +44,7 @@ export const useThemeContext = () => {
 
   if (!context) {
     throw new Error(
-      "useThemeContext must be used within a ThemeContextProvider"
+      "useThemeContext must be used within a ThemeContextProvider",
     );
   }
 

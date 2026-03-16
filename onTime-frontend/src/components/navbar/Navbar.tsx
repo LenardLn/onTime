@@ -55,7 +55,10 @@ const Navbar = () => {
           </span>
         ))}
 
-        <button onClick={toggleTheme} className="hover:cursor-pointer">
+        <button
+          onClick={toggleTheme}
+          className="hover:cursor-pointer navbar__active"
+        >
           {theme === "dark" ? "🌙" : "☀️"}
         </button>
       </nav>
