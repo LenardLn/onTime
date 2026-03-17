@@ -9,7 +9,8 @@ To start he project successfully:
 python3 -m venv venv
 
 3.\* Activate the venv
-source venv/bin/activate
+source venv/bin/activate --- MacOS
+venv\scripts\activate --- Windows
 
 If successfull, you should see `(venv)` in the terminal OR
 Your python interperter (bottom right on the main.py) should say something like this when clicking on it:
