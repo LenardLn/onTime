@@ -1,15 +1,14 @@
 from datetime import datetime, timedelta
+import bcrypt
 from jose import jwt
 from passlib.context import CryptContext
 import os
-import secrets
-print(secrets.token_hex(32))
 
 SECRET_KEY = os.getenv("JWT_SECRET")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 
 def hash_password(password: str):

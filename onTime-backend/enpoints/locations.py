@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from db import engine
-from models import LocationModel
+from models.LocationModel import LocationUpdate
 from datetime import datetime
 import pytz
 from helpers import logger
@@ -9,7 +9,7 @@ router = APIRouter()
 
 
 @router.post("/locations")
-async def save_location(data: LocationModel):
+async def save_location(data: LocationUpdate):
     """Process OwnTracks JSON and save to DB."""
     try:
         topic = getattr(data, "topic", "")

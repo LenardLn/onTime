@@ -3,7 +3,7 @@ import Layout from "./pages/layout";
 import ErrorPage from "./pages/errorPage";
 import HomePage from "./pages/homePage";
 import RegisterPage from "./pages/registerPage";
-import { useAuthContext } from "./components/contexts/AuthContext";
+import { useAuthContext } from "./components/contexts/authContext";
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuthContext();
