@@ -16,7 +16,6 @@ router = APIRouter(
 
 @router.post("/")
 async def create_bus(data: BusCreate):
-    print(data.name)
     try:
         with engine.connect() as conn:
             conn.execute(text(CREATE_BUS), {"name": data.name})
