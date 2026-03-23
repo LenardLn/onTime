@@ -1,4 +1,4 @@
-import { register } from "@/apis/auth.api";
+import { login, register } from "@/apis/auth.api";
 import Container from "@/components/container/Container";
 import { Button } from "@/components/shadcn/button";
 import { Input } from "@/components/shadcn/input";
@@ -6,17 +6,30 @@ import { t } from "i18next";
 import { Controller, useForm } from "react-hook-form";
 import "../css/AuthPage.css";
 import type { Credentials } from "@/entities/credentials";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
-const RegisterPage = () => {
+interface AuthPageProps {
+  mode: "login" | "register";
+}
+
+const AuthPage = ({ mode }: AuthPageProps) => {
   const { handleSubmit, control, watch } = useForm<Credentials>();
+  const navigate = useNavigate();
+  const isRegister = mode === "register";
 
   const submitData = async (credentials: Credentials) => {
     console.log(credentials);
     try {
-      const response = await register(credentials);
-
-      console.log(response);
-    } catch (error) {}
+      if (isRegister) {
+        await register(credentials);
+      } else {
+        await login(credentials);
+        navigate("/admin/dashboard");
+      }
+    } catch (error: any) {
+      toast.warning(t(error));
+    }
   };
 
   const samePasswordField = watch("password");
@@ -64,35 +77,38 @@ const RegisterPage = () => {
             />
           )}
         />
-        <Controller
-          name="confirmPassword"
-          control={control}
-          rules={{
-            required: t("errors.isRequired", {
-              field: t("registerPage.confirmPassword"),
-            }),
-            validate: (value) => {
-              if (value !== samePasswordField) {
-                return t("errors.passwordsDoNotMatch");
-              }
-            },
-          }}
-          render={({ field, fieldState: { error } }) => (
-            <Input
-              value={field.value}
-              onChange={field.onChange}
-              type="password"
-              label={t("registerPage.confirmPassword")}
-              errorText={error?.message}
-            />
-          )}
-        />
+        {isRegister && (
+          <Controller
+            name="confirmPassword"
+            control={control}
+            rules={{
+              required: t("errors.isRequired", {
+                field: t("registerPage.confirmPassword"),
+              }),
+              validate: (value) => {
+                if (value !== samePasswordField) {
+                  return t("errors.passwordsDoNotMatch");
+                }
+              },
+            }}
+            render={({ field, fieldState: { error } }) => (
+              <Input
+                value={field.value}
+                onChange={field.onChange}
+                type="password"
+                label={t("registerPage.confirmPassword")}
+                errorText={error?.message}
+              />
+            )}
+          />
+        )}
+
         <Button variant={"ghost"} className="text-2xl !px-[2rem] !py-[1rem]">
-          {t("registerPage.register")}
+          {isRegister ? t("registerPage.register") : t("homePage.login")}
         </Button>
       </form>
     </Container>
   );
 };
 
-export default RegisterPage;
+export default AuthPage;

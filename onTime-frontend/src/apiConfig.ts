@@ -1,4 +1,4 @@
-import axios, { type AxiosRequestConfig } from "axios";
+import axios from "axios";
 
 const URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -10,23 +10,18 @@ export const request = async <T = any>(
   method: "get" | "post" | "put" | "delete",
   url: string,
   data?: any,
-  config?: AxiosRequestConfig,
+  withCredentials?: boolean,
 ): Promise<T> => {
-  const controller = new AbortController();
-
   try {
     const response = await axiosInstance.request<T>({
       url,
       method,
       data,
-      signal: controller.signal,
-      ...config,
+      withCredentials,
     });
 
     return response.data;
   } catch (error: any) {
-    throw new Error(error);
-  } finally {
-    controller.abort();
+    throw new Error(error.message);
   }
 };

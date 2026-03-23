@@ -1,40 +1,70 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { me } from "@/apis/auth.api";
 
-type Profile = {
-    email: string
-    id: string
-}
+export type Profile = {
+  email: string;
+  id: string;
+};
 
 type AuthContext = {
-    setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>,
-    isAuthenticated: boolean
-    setProfile: React.Dispatch<React.SetStateAction<Profile | undefined>>,
-    profile: Profile | undefined,
-}
+  isAuthenticated: boolean;
+  setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
+  profile?: Profile;
+  setProfile: React.Dispatch<React.SetStateAction<Profile | undefined>>;
+  loading: boolean;
+};
 
 const AuthContext = createContext<AuthContext>({
-    setIsAuthenticated: () => { },
-    isAuthenticated: false,
-    setProfile: () => { },
-    profile: undefined,
+  isAuthenticated: false,
+  setIsAuthenticated: () => {},
+  profile: undefined,
+  setProfile: () => {},
+  loading: true,
 });
 
+export function AuthContextProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [profile, setProfile] = useState<Profile | undefined>(undefined);
+  const [loading, setLoading] = useState(true);
 
-export function AuthContextProvider({ children }: { children: React.ReactNode }) {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [profile, setProfile] = useState<Profile | undefined>(undefined);
+  useEffect(() => {
+    const initAuth = async () => {
+      try {
+        const user = await me();
+        setProfile(user);
+        setIsAuthenticated(true);
+      } catch {
+        setProfile(undefined);
+        setIsAuthenticated(false);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    return (
-        <AuthContext.Provider value={{ setIsAuthenticated, isAuthenticated, setProfile, profile }}>
-            {children}
-        </AuthContext.Provider>
-    );
+    initAuth();
+  }, []);
+
+  return (
+    <AuthContext.Provider
+      value={{
+        isAuthenticated,
+        setIsAuthenticated,
+        profile,
+        setProfile,
+        loading,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export const useAuthContext = () => {
-    const context = useContext(AuthContext);
-    if (context === undefined) {
-        throw new Error("useAuthContext must be used within an AuthProvider");
-    }
-    return context;
+  const context = useContext(AuthContext);
+  if (!context) throw new Error("useAuthContext must be used within provider");
+  return context;
 };

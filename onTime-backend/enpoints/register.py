@@ -1,32 +1,31 @@
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 from datetime import datetime
-from fastapi import APIRouter
-from sqlalchemy import text
+
+from db import get_db
+from models.db_schemas.User import User
 from models.AuthModel import Register
-from helpers.logger import logger
-from db import engine
 from helpers.auth import hash_password
+from fastapi import HTTPException
+
 
 router = APIRouter()
 
 
 @router.post("/register")
-async def register(data: Register):
-    try:
-        hashed = hash_password(data.password)
-        time = datetime.now()
-        payload = {
-            "password": hashed,
-            "email": data.email,
-            "created_at": time
-        }
-        with engine.begin() as conn:  # auto-commit
-            conn.execute(text("""
-            INSERT INTO users(password, email, created_at)
-            VALUES (:password, :email, :created_at)
-        """), payload)
+def register(data: Register, db: Session = Depends(get_db)):
+    existing = db.query(User).filter(User.email == data.email).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="errors.email_not_unique")
 
-        return {"status": "user created"}
+    user = User(
+        email=data.email,
+        password=hash_password(data.password),
+        created_at=datetime.now()
+    )
 
-    except Exception as e:
-        logger.error(f"Register error: {e}")
-        return {"status": "error", "detail": str(e)}
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    return {"status": "user created", "id": user.id}

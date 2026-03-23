@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from enpoints import locations, register
+from enpoints import locations, register, login, me
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -18,4 +18,6 @@ app.add_middleware(
 
 app.include_router(locations.router)
 app.include_router(register.router)
+app.include_router(login.router)
+app.include_router(me.router)
 # app.include_router(login.router)
