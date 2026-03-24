@@ -6,6 +6,8 @@ from models.AuthModel import Login
 from helpers.auth import verify_password, create_access_token
 from fastapi import Response
 
+from models.errors.Errors import InvalideCredentials
+
 router = APIRouter()
 
 
@@ -14,8 +16,7 @@ def login(data: Login, response: Response, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == data.email).first()
 
     if not user or not verify_password(data.password, user.password):
-        raise HTTPException(
-            status_code=400, detail="errors.invalid_credentials")
+        raise InvalideCredentials()
 
     token = create_access_token({
         "sub": user.email,

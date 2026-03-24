@@ -8,6 +8,9 @@ from models.AuthModel import Register
 from helpers.auth import hash_password
 from fastapi import HTTPException
 
+from models.errors.Errors import EmailExistsError
+
+
 
 router = APIRouter()
 
@@ -16,7 +19,7 @@ router = APIRouter()
 def register(data: Register, db: Session = Depends(get_db)):
     existing = db.query(User).filter(User.email == data.email).first()
     if existing:
-        raise HTTPException(status_code=400, detail="errors.email_not_unique")
+        raise EmailExistsError()
 
     user = User(
         email=data.email,
