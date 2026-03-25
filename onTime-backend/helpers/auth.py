@@ -1,8 +1,10 @@
 from datetime import datetime, timedelta
-import bcrypt
 from jose import jwt
 from passlib.context import CryptContext
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 SECRET_KEY = os.getenv("JWT_SECRET")
 ALGORITHM = "HS256"
