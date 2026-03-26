@@ -14,7 +14,13 @@ interface AuthPageProps {
 }
 
 const AuthPage = ({ mode }: AuthPageProps) => {
-  const { handleSubmit, control, watch } = useForm<Credentials>();
+  const { handleSubmit, control, watch } = useForm<Credentials>({
+    defaultValues: {
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
   const navigate = useNavigate();
   const isRegister = mode === "register";
 

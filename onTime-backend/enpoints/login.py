@@ -28,7 +28,7 @@ def login(data: Login, response: Response, db: Session = Depends(get_db)):
         value=token,
         httponly=True,
         secure=True,
-        samesite="lax",
+        samesite="none",
         max_age=60 * 60 * 24
     )
 

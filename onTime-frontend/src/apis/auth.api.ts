@@ -7,7 +7,7 @@ export const register = async (credentials: Credentials) => {
 };
 
 export const login = async (credentials: Credentials) => {
-  return await request<Credentials>("post", "/login", credentials);
+  return await request<Credentials>("post", "/login", credentials, true);
 };
 
 export const me = async () => {

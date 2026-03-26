@@ -12,7 +12,6 @@ origins = [
     "http://localhost:5173",
 ]
 
-
 @app.exception_handler(AppError)
 async def app_error_handler(request: Request, exc: AppError):
     return JSONResponse(
@@ -25,9 +24,10 @@ async def app_error_handler(request: Request, exc: AppError):
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],       # only these URLs can access
+    allow_origins=[],
+    allow_origin_regex=r"https?://.*",
     allow_credentials=True,
-    allow_methods=["*"],         # CRUD operations allowed
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
