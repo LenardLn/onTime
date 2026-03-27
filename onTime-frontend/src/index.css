@@ -14,6 +14,10 @@ html {
   font-size: 62.5%;
 }
 
+*:where(html) {
+  font-size: 1.25rem;
+}
+
 :root {
   --color-bg: #0d1117;
   --color-text: #f0f6fc;
