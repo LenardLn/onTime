@@ -1,5 +1,6 @@
 import { login, register } from "@/apis/auth.api";
 import Container from "@/components/container/Container";
+import { useAuthContext } from "@/components/contexts/authContext";
 import { Button } from "@/components/shadcn/button";
 import { Input } from "@/components/shadcn/input";
 import { t } from "i18next";
@@ -22,15 +23,16 @@ const AuthPage = ({ mode }: AuthPageProps) => {
     },
   });
   const navigate = useNavigate();
+  const { setIsAuthenticated } = useAuthContext();
   const isRegister = mode === "register";
 
   const submitData = async (credentials: Credentials) => {
-    console.log(credentials);
     try {
       if (isRegister) {
         await register(credentials);
       } else {
         await login(credentials);
+        setIsAuthenticated(true);
         navigate("/admin/dashboard");
       }
     } catch (error: any) {
