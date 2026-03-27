@@ -11,6 +11,6 @@
   },
   "errors": {
     "isRequired": "{{field}} este obligatoriu",
-     "passwordsDoNotMatch": "Parolele nu se potrivesc"
+    "passwordsDoNotMatch": "Parolele nu se potrivesc"
   }
 }
