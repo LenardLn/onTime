@@ -15,7 +15,10 @@
     "routes": "Routes",
     "stations": "Stations",
     "buses": "Buses",
-    "users": "Users"
+    "users": "Users",
+    "toggle": "Toggle",
+    "language": "Language",
+    "theme": "Theme"
   },
   "errors": {
     "isRequired": "{{field}} is required",
