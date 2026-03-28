@@ -1,8 +1,6 @@
-import Container from "@/components/container/Container";
-import AdminNavbar from "@/components/navbar/AdminNavbar";
 import { SidebarProvider } from "@/components/shadcn/sidebar";
 import type { CSSProperties } from "react";
-import { Outlet } from "react-router-dom";
+import AdminLayoutContent from "./adminLayoutContent";
 
 const AdminLayout = () => {
   return (
@@ -14,12 +12,7 @@ const AdminLayout = () => {
         } as CSSProperties
       }
     >
-      <AdminNavbar />
-      <main>
-        <Container className="justify-center h-screen">
-          <Outlet />
-        </Container>
-      </main>
+      <AdminLayoutContent />
     </SidebarProvider>
   );
 };

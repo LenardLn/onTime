@@ -14,8 +14,20 @@ html {
   font-size: 62.5%;
 }
 
-*:where(html) {
+*:where(body) {
   font-size: 1.25rem;
+}
+
+svg:has(polygon) {
+  display: none !important;
+}
+
+[data-radix-popper-content-wrapper] {
+  left: 5px !important;
+}
+
+ul, li {
+  list-style-type: none;
 }
 
 :root {
@@ -171,5 +183,11 @@ html {
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .menu-button {
+    @apply !h-20 !flex !items-center !gap-4 !px-4;
   }
 }
