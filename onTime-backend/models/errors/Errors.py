@@ -23,6 +23,7 @@ class EmailExistsError(AppError):
             status_code=409
         )
 
+
 class InvalideCredentials(AppError):
     def __init__(self):
         super().__init__(
@@ -30,6 +31,7 @@ class InvalideCredentials(AppError):
             error_code="errors.invalid_credentials",
             status_code=401
         )
+
 
 class NotAuthenticatedError(AppError):
     def __init__(self):
@@ -39,3 +41,11 @@ class NotAuthenticatedError(AppError):
             status_code=401
         )
 
+
+class LineAlreadyExistsError(AppError):
+    def __init__(self):
+        super().__init__(
+            message="Line already exista",
+            error_code="error.line_exists",
+            status_code=409
+        )
