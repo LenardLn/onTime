@@ -9,6 +9,17 @@
     "password": "Password",
     "confirmPassword": "Confirm password"
   },
+  "admin": {
+    "dashboard": "Dashboard",
+    "lines": "Lines",
+    "routes": "Routes",
+    "stations": "Stations",
+    "buses": "Buses",
+    "users": "Users",
+    "toggle": "Toggle",
+    "language": "Language",
+    "theme": "Theme"
+  },
   "errors": {
     "isRequired": "{{field}} is required",
     "passwordsDoNotMatch": "Passwords do not match"

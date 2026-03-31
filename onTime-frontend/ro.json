@@ -9,6 +9,17 @@
     "password": "Parolă",
     "confirmPassword": "Confirmă parola"
   },
+  "admin": {
+    "dashboard": "Tablou de Bord",
+    "lines": "Linii",
+    "routes": "Trasee",
+    "stations": "Stații",
+    "buses": "Autobuze",
+    "users": "Utilizatori",
+    "toggle": "Comută",
+    "language": "Limbă",
+    "theme": "Tematică"
+  },
   "errors": {
     "isRequired": "{{field}} este obligatoriu",
     "passwordsDoNotMatch": "Parolele nu se potrivesc"

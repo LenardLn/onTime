@@ -1,12 +1,19 @@
-import Container from "@/components/container/Container";
-import { Outlet } from "react-router-dom";
+import { SidebarProvider } from "@/components/shadcn/sidebar";
+import type { CSSProperties } from "react";
+import AdminLayoutContent from "./adminLayoutContent";
 
 const AdminLayout = () => {
   return (
-    <Container className="justify-center h-screen">
-      <nav>admin navbar placeholder</nav>
-      <Outlet />
-    </Container>
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "20rem",
+          "--sidebar-width-icon": "5.2rem",
+        } as CSSProperties
+      }
+    >
+      <AdminLayoutContent />
+    </SidebarProvider>
   );
 };
 

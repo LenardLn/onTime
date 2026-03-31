@@ -28,9 +28,9 @@ const Navbar = () => {
     const savedLanguage = localStorage.getItem("language");
     if (savedLanguage) {
       setActive(savedLanguage);
-      i18n.changeLanguage(savedLanguage === "1" ? "ro" : "en");
+      i18n.changeLanguage(savedLanguage === "ro" ? "ro" : "en");
     } else {
-      localStorage.setItem("language", "1");
+      localStorage.setItem("language", "ro");
       i18n.changeLanguage("ro");
     }
   }, []);
