@@ -49,3 +49,23 @@ class LineAlreadyExistsError(AppError):
             error_code="error.line_exists",
             status_code=409
         )
+
+
+class TxtFileRequiredError(AppError):
+
+    def __init__(self):
+        super().__init__(
+            message="File must be a .txt",
+            error_code="error.txt_file_required",
+            status_code=409
+        )
+
+
+class TxtRoutesUploadFormatError(AppError):
+
+    def __init__(self):
+        super().__init__(
+            message="File must contain Lat: value, Long: value and Index: value for each line",
+            error_code="error.txt_routes_upload_format",
+            status_code=409
+        )

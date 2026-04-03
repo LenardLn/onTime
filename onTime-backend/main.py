@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from enpoints import locations, register, lines
+from enpoints import locations, register, lines, routes
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from enpoints import locations, register, login, me
@@ -36,6 +36,7 @@ app.add_middleware(
 app.include_router(locations.router)
 app.include_router(register.router)
 app.include_router(lines.router)
+app.include_router(routes.router)
 app.include_router(login.router)
 app.include_router(me.router)
 # app.include_router(login.router)

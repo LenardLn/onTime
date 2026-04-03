@@ -6,6 +6,7 @@ from models.db_schemas.User import User
 import os
 from dotenv import load_dotenv
 
+
 load_dotenv()
 JWT_SECRET = os.getenv("JWT_SECRET")
 ALGORITHM = "HS256"
@@ -24,10 +25,11 @@ def get_current_user(request: Request, db: Session = Depends(get_db)):
         user_id = payload.get("user_id")
     except JWTError:
         raise HTTPException(status_code=401, detail="errors.invalid_token")
-
-    user = db.query(User).filter(User.id == user_id).first()
+    user = db.query(User.id, User.email).filter(
+        User.id == user_id).first() 
+    # dont return the password
 
     if not user:
         raise HTTPException(status_code=401, detail="errors.users_not_found")
 
-    return user
+    return user._asdict()
