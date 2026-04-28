@@ -1,0 +1,28 @@
+{
+  "homePage": {
+    "home": "Acasă",
+    "login": "Logare"
+  },
+  "registerPage": {
+    "register": "Înregistrare",
+    "email": "Email",
+    "password": "Parolă",
+    "confirmPassword": "Confirmă parola"
+  },
+  "admin": {
+    "dashboard": "Tablou de Bord",
+    "lines": "Linii",
+    "routes": "Trasee",
+    "stations": "Stații",
+    "buses": "Autobuze",
+    "users": "Utilizatori",
+    "toggle": "Comută",
+    "language": "Limbă",
+    "theme": "Tematică",
+    "logout": "Deconectare"
+  },
+  "errors": {
+    "isRequired": "{{field}} este obligatoriu",
+    "passwordsDoNotMatch": "Parolele nu se potrivesc"
+  }
+}
