@@ -1,7 +1,7 @@
 import re
-from typing import List
+from typing import List, Optional
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, Query
 from models.LineModel import LineModel
 from sqlalchemy.orm import Session
 from helpers import logger
@@ -12,7 +12,7 @@ from models.RouteModel import Route, RouteCreate
 from helpers.get_current_user import get_current_user
 from models.db_schemas.Route import Route as RouteDB
 from models.errors.Errors import TxtFileRequiredError, TxtRoutesUploadFormatError
-
+from models.db_schemas.Station import Station as StationDB
 
 router = APIRouter()
 
@@ -22,6 +22,42 @@ router = APIRouter(
 )
 
 
+@router.get("/")
+async def get_routes(
+    line_ids: Optional[List[int]] = Query(default=None),
+    station_name: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    query = db.query(RouteDB)
+
+    # Filter by station name → convert to line_ids
+    if station_name:
+        lines = db.query(StationDB.line_id).filter(
+            StationDB.name == station_name
+        ).distinct().all()
+
+        if not lines:
+            raise HTTPException(404, "Station not found")
+
+        station_line_ids = [l[0] for l in lines]
+
+        if line_ids:
+            # intersection of filters
+            line_ids = list(set(line_ids) & set(station_line_ids))
+        else:
+            line_ids = station_line_ids
+
+    # Apply line filter
+    if line_ids:
+        query = query.filter(RouteDB.line_id.in_(line_ids))
+
+    routes = query.order_by(
+        RouteDB.line_id,
+        RouteDB.order_index
+    ).all()
+
+    return routes
+
 # individual create for now, will need to be able to add array of items
 @router.post("/")
 async def create_route(data: RouteCreate, db: Session = Depends(get_db), user=Depends(get_current_user)):
@@ -30,7 +66,8 @@ async def create_route(data: RouteCreate, db: Session = Depends(get_db), user=De
         lat=data.lat,
         long=data.long,
         line_id=data.line_id,
-        created_by=user["id"]
+        created_by=user["id"],
+        order_index=data.order_index
     )
 
     db.add(new_route)
@@ -38,38 +75,3 @@ async def create_route(data: RouteCreate, db: Session = Depends(get_db), user=De
     db.refresh(new_route)
 
     return new_route
-
-
-@router.post("/file/{line_id}")
-async def create_route(file: UploadFile = File(...), db: Session = Depends(get_db), user=Depends(get_current_user), line_id: int = None):
-    content = await file.read()
-    lines = content.decode("utf-8").splitlines()
-
-    if not file.filename.endswith(".txt"):
-        raise TxtFileRequiredError()
-
-    new_routes = []
-
-    for line in lines:
-        values = re.findall(r"(?:Lat|Long|Index):\s*([-\d.]+)", line)
-
-        if len(values) != 3:
-            continue  # if raw line does not match expected format, skip it
-
-        lat = values[0]
-        long = values[1]
-        index = values[2]
-
-        new_route = RouteDB(
-            lat=float(lat.strip()),
-            long=float(long.strip()),
-            line_id=line_id,
-            order_index=index,
-            created_by=user["id"]
-        )
-        new_routes.append(new_route)
-
-    db.bulk_save_objects(new_routes)
-    db.commit()
-
-    return "created"

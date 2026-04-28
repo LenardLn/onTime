@@ -13,3 +13,4 @@ class Station(Base):
     line_id: Mapped[int] = mapped_column(SmallInteger, nullable=False)
     lat: Mapped[float] = mapped_column(Float, nullable=False)
     long: Mapped[float] = mapped_column(Float, nullable=False)
+    order_index: Mapped[int] = mapped_column(Integer, nullable=False)
