@@ -5,8 +5,11 @@ from sqlalchemy.orm import Session
 
 from db import get_db
 from models.db_schemas.Station import Station as StationDB
-from models.StationModel import StationCreate, Station
-
+from models.StationModel import StationCreate, Station, StationUpdate
+from models.db_schemas.User import User as UserDB
+from helpers.get_current_user import get_current_user
+from datetime import datetime, timezone
+from models.errors.Errors import StationNotFoundError, LineNotFoundError
 
 router = APIRouter(
     prefix="/stations",
@@ -18,58 +21,159 @@ router = APIRouter(
 @router.post("", response_model=Station)
 async def create_station(
     data: StationCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
 ):
 
     new_station = StationDB(
         name=data.name,
+        station_id=data.station_id,
         line_id=data.line_id,
         lat=data.lat,
         long=data.long,
-        order_index=data.order_index
+        order_index=data.order_index,
+        created_by=user["id"],
+        created_at=datetime.now(timezone.utc)
+
     )
 
     db.add(new_station)
     db.commit()
     db.refresh(new_station)
 
-    return new_station
+    return {
+        "stations": [{
+            "id": new_station.id,
+            "station_id": new_station.station_id,
+            "name": new_station.name,
+            "line_id": new_station.line_id,
+            "lat": new_station.lat,
+            "long": new_station.long,
+            "order_index": new_station.order_index,
+        }],
+        "created_at": str(new_station.created_at),
+        "created_by": {
+            "id": user["id"],
+            "email": user["email"],
+        }
+    }
 
-
-# GET /stations
-@router.get("", response_model=List[Station])
-async def get_stations(
-    db: Session = Depends(get_db)
-):
-
-    stations = db.query(StationDB).all()
-
-    return stations
-
-
-# GET /stations/{id} 
-@router.get("/", response_model=List[Station])
+@router.get("", response_model=Station)
 async def get_stations(
     line_ids: Optional[List[int]] = Query(default=None),
-    db: Session = Depends(get_db)
+    station_ids: Optional[List[int]] = Query(default=None),
+    db: Session = Depends(get_db),
 ):
-    # Base query
-    query = db.query(StationDB)
-    
-    if not query:
-        raise HTTPException(
-            status_code=404,
-            detail="Station not found"
-        )
+    query = db.query(StationDB, UserDB).join(
+        UserDB,
+        StationDB.created_by == UserDB.id
+    )
 
-    # Filter by line_ids if provided
+    if station_ids:
+        query = query.filter(StationDB.station_id.in_(station_ids))
+
     if line_ids:
         query = query.filter(StationDB.line_id.in_(line_ids))
 
-    # Order for correct display
-    stations = query.order_by(
+    rows = query.order_by(
         StationDB.line_id,
         StationDB.order_index
     ).all()
 
-    return stations
+    if not rows:
+        if station_ids:
+            raise StationNotFoundError()
+        elif line_ids:
+            raise LineNotFoundError()
+        else:
+            raise StationNotFoundError()
+
+    latest_station, latest_user =  max(
+            rows,
+            key=lambda row: row[0].created_at
+    )
+    
+    return {
+        "stations": [
+            {
+                "id": station.id,
+                "station_id": station.station_id,
+                "name": station.name,
+                "line_id": station.line_id,
+                "lat": station.lat,
+                "long": station.long,
+                "order_index": station.order_index,
+            }
+            for station, _ in rows
+        ],
+        "created_at": str(latest_station.created_at),
+        "created_by": {
+            "id": latest_user.id,
+            "email": latest_user.email,
+        } if latest_user else None,
+    }
+
+
+@router.put("/{id}", response_model=Station)
+async def update_station(
+    id: int,
+    data: StationUpdate,
+    db: Session = Depends(get_db)
+):
+    station = db.query(StationDB).filter(StationDB.id == id).first()
+
+    if not station:
+        raise StationNotFoundError()
+
+    if data.name is not None:
+        station.name = data.name
+    if data.line_id is not None:
+        station.line_id = data.line_id
+    if data.lat is not None:
+        station.lat = data.lat
+    if data.long is not None:
+        station.long = data.long
+    if data.order_index is not None:
+        station.order_index = data.order_index
+    if data.station_id is not None:
+        station.station_id = data.station_id
+    
+    db.commit()
+    db.refresh(station)
+
+    user = db.query(UserDB).filter(UserDB.id == station.created_by).first()
+
+    return {
+        "stations": [{
+            "id": station.id,
+            "station_id": station.station_id,
+            "name": station.name,
+            "line_id": station.line_id,
+            "lat": station.lat,
+            "long": station.long,
+            "order_index": station.order_index,
+        }],
+        "created_at": str(station.created_at),
+        "created_by": {
+            "id": user.id,
+            "email": user.email,
+        } if user else None,
+    }
+
+@router.delete("/{id}")
+async def delete_station(
+    id: int,
+    db: Session = Depends(get_db)
+):
+    station = db.query(StationDB).filter(StationDB.id == id).first()
+
+    if not station:
+        raise StationNotFoundError()
+
+    db.delete(station)
+    db.commit()
+
+    return {
+        "message": "Station deleted successfully",
+        "deleted_id": id
+    }

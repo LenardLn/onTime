@@ -6,6 +6,7 @@ from db import get_db
 from models.db_schemas import User
 from dotenv import load_dotenv
 from models.errors import Errors
+from models.errors.Errors import InvalidTokenError, InvalidUserError
 
 load_dotenv()
 
@@ -23,22 +24,22 @@ def get_me(request: Request, db: Session = Depends(get_db)):
     token = request.cookies.get("access_token")
 
     if not token:
-        raise HTTPException(status_code=401, detail=Errors.INVALID_TOKEN)
+        raise InvalidTokenError()
 
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[ALGORITHM])
         user_id = payload.get("user_id")
 
         if not user_id:
-            raise HTTPException(status_code=401, detail="errors.invalid_token")
+            raise InvalidTokenError()
 
     except JWTError:
-        raise HTTPException(status_code=401, detail="errors.invalid_token")
+        raise InvalidTokenError()
 
     user = db.query(User).filter(User.id == user_id).first()
 
     if not user:
-        raise HTTPException(status_code=401, detail="errors.not_found_user")
+        raise InvalidUserError()
 
     return {
         "id": user.id,

@@ -1,12 +1,10 @@
-import datetime
 from typing import Optional
-import datetime
 from datetime import datetime, timezone
-from sqlalchemy.orm import declarative_base, Mapped, mapped_column
-from sqlalchemy import DateTime, Integer, String, DATETIME, Float
-from sqlalchemy import Float
 
-Base = declarative_base()
+from sqlalchemy.orm import declarative_base, Mapped, mapped_column, relationship
+from sqlalchemy import DateTime, Integer, Float, ForeignKey
+
+from models.db_schemas.Base import Base
 
 
 class Route(Base):
@@ -20,6 +18,11 @@ class Route(Base):
         DateTime,
         default=lambda: datetime.now(timezone.utc)
     )
-    created_by: Mapped[int] = mapped_column(Integer, nullable=True)
-    order_index: Mapped[int] = mapped_column(Integer, nullable=True)
     
+    created_by: Mapped[Optional[int]] = mapped_column(
+        Integer, 
+        ForeignKey("users.id"),
+        nullable=True)
+    
+    order_index: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+        

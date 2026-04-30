@@ -8,7 +8,7 @@ from db import get_db
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from models.db_schemas.Line import Line
-from models.errors.Errors import LineAlreadyExistsError
+from models.errors.Errors import LineAlreadyExistsError, LineNotFoundError
 
 
 router = APIRouter()
@@ -45,3 +45,36 @@ async def get_all_lines(db: Session = Depends(get_db)):
         return lines
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/{line_id}")
+async def delete_line(
+    line_id: int,
+    db: Session = Depends(get_db),
+):
+    # 1. check
+    line = db.query(Line).filter(Line.id == line_id).first()
+
+    if not line:
+        raise LineNotFoundError()
+
+    # 2. routes 
+    db.execute(
+        text("DELETE FROM routes WHERE line_id = :line_id"),
+        {"line_id": line_id}
+    )
+
+    # 3. stations 
+    db.execute(
+        text("DELETE FROM stations WHERE line_id = :line_id"),
+        {"line_id": line_id}
+    )
+
+    # 4. line 
+    db.delete(line)
+
+    db.commit()
+
+    return {
+        "message": "Line and all related data deleted",
+        "line_id": line_id
+    }
