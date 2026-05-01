@@ -1,18 +1,15 @@
-import re
-from typing import List
-
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
-from models.LineModel import LineModel
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from helpers import logger
 from db import get_db
 from sqlalchemy.orm import Session
-from models.db_schemas.Line import Line
-from models.RouteModel import Route, RouteCreate
+from models.RouteModel import Route, RouteCreate, RouteUpdate
 from helpers.get_current_user import get_current_user
 from models.db_schemas.Route import Route as RouteDB
-from models.errors.Errors import TxtFileRequiredError, TxtRoutesUploadFormatError
-
+from models.db_schemas.Station import Station as StationDB
+from datetime import datetime, timezone
+from models.db_schemas.User import User as UserDB
+from models.errors.Errors import RouteNotFoundError, StationNotFoundError, LineNotFoundError
 
 router = APIRouter()
 
@@ -22,54 +19,155 @@ router = APIRouter(
 )
 
 
+@router.get("/", response_model=Route)
+async def get_routes(
+    line_ids: Optional[List[int]] = Query(default=None),
+    station_ids: Optional[List[int]] = Query(default=None),
+    db: Session = Depends(get_db)
+):
+    query = db.query(RouteDB, UserDB).join(
+        UserDB,
+        RouteDB.created_by == UserDB.id
+    )
+        
+
+    if station_ids:
+        lines = db.query(StationDB.line_id).filter(
+            StationDB.station_id.in_(station_ids)
+        ).distinct().all()
+
+        if not lines:
+            raise StationNotFoundError()
+
+        station_line_ids = [line[0] for line in lines]
+
+        if line_ids:
+            line_ids = list(set(line_ids) & set(station_line_ids))
+        else:
+            line_ids = station_line_ids
+
+    if line_ids:
+        query = query.filter(RouteDB.line_id.in_(line_ids))
+        
+
+    rows = query.order_by(
+        RouteDB.line_id,
+        RouteDB.order_index
+    ).all()
+    
+    if not rows:
+        raise LineNotFoundError()
+
+    latest_route, latest_user =  max(
+        rows,
+        key=lambda row: row[0].created_at
+    )
+
+    return {
+        "routes": [
+            {
+                "id": route.id,
+                "lat": route.lat,
+                "long": route.long,
+                "line_id": route.line_id,
+                "order_index": route.order_index,
+            }
+            for route, _ in rows
+        ],
+        "created_at": str(latest_route.created_at),
+        "created_by": {
+            "id": latest_user.id,
+            "email": latest_user.email,
+        } if latest_user else None,
+    }
+    
 # individual create for now, will need to be able to add array of items
-@router.post("")
+@router.post("", response_model=Route)
 async def create_route(data: RouteCreate, db: Session = Depends(get_db), user=Depends(get_current_user)):
 
     new_route = RouteDB(
         lat=data.lat,
         long=data.long,
         line_id=data.line_id,
-        created_by=user["id"]
+        created_by=user["id"],
+        order_index=data.order_index,
+        created_at=datetime.now(timezone.utc)
     )
 
     db.add(new_route)
     db.commit()
     db.refresh(new_route)
 
-    return new_route
+    return {
+        "routes": [{
+            "id": new_route.id,
+            "lat": new_route.lat,
+            "long": new_route.long,
+            "line_id": new_route.line_id,
+            "order_index": new_route.order_index,
+        }],
+        "created_at": str(new_route.created_at),
+        "created_by": {
+            "id": user["id"],
+            "email": user["email"],
+        }
+    }
 
+@router.put("/{id}", response_model=Route)
+async def update_route(
+    id: int,
+    data: RouteUpdate,
+    db: Session = Depends(get_db),
+):
+    route = db.query(RouteDB).filter(RouteDB.id == id).first()
 
-@router.post("/file/{line_id}")
-async def create_route(file: UploadFile = File(...), db: Session = Depends(get_db), user=Depends(get_current_user), line_id: int = None):
-    content = await file.read()
-    lines = content.decode("utf-8").splitlines()
+    if not route:
+        raise RouteNotFoundError()
 
-    if not file.filename.endswith(".txt"):
-        raise TxtFileRequiredError()
+    if data.lat is not None:
+        route.lat = data.lat
+    if data.long is not None:
+        route.long = data.long
+    if data.line_id is not None:
+        route.line_id = data.line_id
+    if data.order_index is not None:
+        route.order_index = data.order_index
 
-    new_routes = []
+    db.commit()
+    db.refresh(route)
 
-    for line in lines:
-        values = re.findall(r"(?:Lat|Long|Index):\s*([-\d.]+)", line)
+    user = db.query(UserDB).filter(UserDB.id == route.created_by).first()
 
-        if len(values) != 3:
-            continue  # if raw line does not match expected format, skip it
+    return {
+        "routes": [{
+            "id": route.id,
+            "lat": route.lat,
+            "long": route.long,
+            "line_id": route.line_id,
+            "order_index": route.order_index,
+        }],
+        "created_at": str(route.created_at),
+        "created_by": {
+            "id": user.id,
+            "email": user.email,
+        } if user else None,
+    }
+    
+@router.delete("/line/{line_id}")
+async def delete_route_by_line(
+    line_id: int,
+    db: Session = Depends(get_db),
+):
+    
+    deleted_count = db.query(RouteDB).filter(RouteDB.line_id == line_id).delete(synchronize_session=False)
 
-        lat = values[0]
-        long = values[1]
-        index = values[2]
+    if deleted_count == 0:
+        raise RouteNotFoundError()
 
-        new_route = RouteDB(
-            lat=float(lat.strip()),
-            long=float(long.strip()),
-            line_id=line_id,
-            order_index=index,
-            created_by=user["id"]
-        )
-        new_routes.append(new_route)
-
-    db.bulk_save_objects(new_routes)
     db.commit()
 
-    return "created"
+    return {
+        "message": "All routes deleted for line_id",
+        "line_id": line_id,
+        "deleted_count": deleted_count
+    }

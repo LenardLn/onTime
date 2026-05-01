@@ -5,6 +5,9 @@ class Errors(str, Enum):
     INVALID_TOKEN = "errors.invalid_token"
     NOT_FOUND_USER = "errors.not_found_user"
     NOT_AUTHENTICATED = "errors.not_authenticated"
+    LINE_NOT_FOUND = "errors.line_not_found"
+    ROUTE_NOT_FOUND = "errors.route_not_found"
+    STATION_NOT_FOUND = "errors.station_not_found"
 
 
 class AppError(Exception):
@@ -85,5 +88,29 @@ class InvalidUserError(AppError):
         super().__init__(
             message="User not found",
             error_code=Errors.NOT_FOUND_USER,
+            status_code=404
+        )
+        
+class LineNotFoundError(AppError):
+    def __init__(self):
+        super().__init__(
+            message="Line not found",
+            error_code=Errors.LINE_NOT_FOUND,
+            status_code=404
+        )
+
+class RouteNotFoundError(AppError):
+    def __init__(self):
+        super().__init__(
+            message="Route not found",
+            error_code=Errors.ROUTE_NOT_FOUND,
+            status_code=404
+        )
+
+class StationNotFoundError(AppError):
+    def __init__(self):
+        super().__init__(
+            message="Station not found",
+            error_code=Errors.STATION_NOT_FOUND,
             status_code=404
         )

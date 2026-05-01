@@ -1,7 +1,6 @@
 from sqlalchemy.orm import declarative_base, Mapped, mapped_column
 from sqlalchemy import Integer, String
-
-Base = declarative_base()
+from models.db_schemas.Base import Base
 
 
 class Line(Base):
