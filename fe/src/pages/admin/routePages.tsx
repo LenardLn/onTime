@@ -1,0 +1,26 @@
+import { useLineColumns } from "@/components/data-table/columns/GenericColumns";
+import { DataTable } from "@/components/data-table/DataTable";
+import PageLoader from "@/components/loaders/PageLoader";
+import { appPaths } from "@/entities/enums/appPaths";
+import useLines from "@/hooks/admin/tanstack/useLines";
+import useErrorMessage from "@/hooks/admin/useFetchSideEffects";
+
+const RoutePage = () => {
+  const { data: lines, isLoading, isError, error } = useLines();
+  const columns = useLineColumns({
+    getDetailPath: (route) => appPaths.adminRouteDetails(route.id),
+    actionColumnName: "",
+  });
+
+  useErrorMessage({ isError, error });
+
+  if (isLoading) return <PageLoader />;
+
+  return (
+    <>
+      <DataTable columns={columns} data={lines ?? []} />
+    </>
+  );
+};
+
+export default RoutePage;

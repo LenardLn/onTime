@@ -19,7 +19,13 @@
     "toggle": "Toggle",
     "language": "Language",
     "theme": "Theme",
-    "logout": "Logout"
+    "logout": "Logout",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "name": "Name",
+    "action": "Action",
+    "viewRoute": "View Route"
   },
   "errors": {
     "isRequired": "{{field}} is required",

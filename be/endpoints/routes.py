@@ -19,7 +19,7 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=Route)
+@router.get("", response_model=Route)
 async def get_routes(
     line_ids: Optional[List[int]] = Query(default=None),
     station_ids: Optional[List[int]] = Query(default=None),
@@ -29,7 +29,6 @@ async def get_routes(
         UserDB,
         RouteDB.created_by == UserDB.id
     )
-        
 
     if station_ids:
         lines = db.query(StationDB.line_id).filter(
@@ -48,17 +47,16 @@ async def get_routes(
 
     if line_ids:
         query = query.filter(RouteDB.line_id.in_(line_ids))
-        
 
     rows = query.order_by(
         RouteDB.line_id,
         RouteDB.order_index
     ).all()
-    
+
     if not rows:
         raise LineNotFoundError()
 
-    latest_route, latest_user =  max(
+    latest_route, latest_user = max(
         rows,
         key=lambda row: row[0].created_at
     )
@@ -67,8 +65,8 @@ async def get_routes(
         "routes": [
             {
                 "id": route.id,
-                "lat": route.lat,
-                "long": route.long,
+                "latitude": route.lat,
+                "longitude": route.long,
                 "line_id": route.line_id,
                 "order_index": route.order_index,
             }
@@ -80,8 +78,10 @@ async def get_routes(
             "email": latest_user.email,
         } if latest_user else None,
     }
-    
+
 # individual create for now, will need to be able to add array of items
+
+
 @router.post("", response_model=Route)
 async def create_route(data: RouteCreate, db: Session = Depends(get_db), user=Depends(get_current_user)):
 
@@ -112,6 +112,7 @@ async def create_route(data: RouteCreate, db: Session = Depends(get_db), user=De
             "email": user["email"],
         }
     }
+
 
 @router.put("/{id}", response_model=Route)
 async def update_route(
@@ -152,14 +153,16 @@ async def update_route(
             "email": user.email,
         } if user else None,
     }
-    
+
+
 @router.delete("/line/{line_id}")
 async def delete_route_by_line(
     line_id: int,
     db: Session = Depends(get_db),
 ):
-    
-    deleted_count = db.query(RouteDB).filter(RouteDB.line_id == line_id).delete(synchronize_session=False)
+
+    deleted_count = db.query(RouteDB).filter(
+        RouteDB.line_id == line_id).delete(synchronize_session=False)
 
     if deleted_count == 0:
         raise RouteNotFoundError()

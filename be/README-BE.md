@@ -3,7 +3,7 @@ To start he project successfully:
 -- Important! steps marked with `\*` should be done one time only or if dependencies change
 
 1. Navigate to root backend folder
-   cd onTime-backend
+   cd be
 
 2.\* Create venv for Python on MacOS
 python3 -m venv venv

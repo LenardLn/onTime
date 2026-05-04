@@ -2,31 +2,24 @@ import Container from "@/components/container/Container";
 import AdminNavbar from "@/components/navbar/AdminNavbar";
 import { Outlet } from "react-router-dom";
 import UserUtilitiesHeader from "@/components/navbar/UserUtilitiesHeader";
-import chevronSvg from "@/assets/chevron.svg";
+import PageTitle from "@/components/page-title/PageTitle";
 
 const AdminLayoutContent = () => {
   return (
-    <>
+    <div className="flex h-screen w-screen overflow-hidden">
       <AdminNavbar />
-      <main className="w-full">
-        <header className="h-24 flex gap-4 justify-between bg-sidebar border-b-1 border-black">
-          {/* to be extracted into a PageTitle.tsx component */}
-          <div className="flex gap-4 items-center">
-            <img
-              className="size-[20px] inline"
-              src={chevronSvg}
-              alt="Back Button"
-            />
-            <p className="text-2xl"> Back button w/ breadcrumbs</p>
-            <div className="text-3xl">Page Title</div>
-          </div>
+
+      <main className="flex-1 flex flex-col min-w-0">
+        <header className="h-24 flex shrink-0 gap-4 justify-between bg-sidebar shadow-[0_2px_5px_var(--color-shadow)]">
+          <PageTitle />
           <UserUtilitiesHeader />
         </header>
-        <Container className="justify-center h-screen">
+
+        <Container className="flex-1 min-h-0">
           <Outlet />
         </Container>
       </main>
-    </>
+    </div>
   );
 };
 

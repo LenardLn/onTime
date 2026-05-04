@@ -6,8 +6,8 @@ from typing import Optional, List
 
 class RouteData(BaseModel):
     id: int
-    lat: float
-    long: float
+    latitude: float
+    longitude: float
     line_id: int
     order_index: Optional[int] = None
 
@@ -29,7 +29,7 @@ class RouteCreate(BaseModel):
     long: float
     line_id: int
     order_index: int
-    
+
 
 class RouteUpdate(BaseModel):
     id: Optional[int] = None

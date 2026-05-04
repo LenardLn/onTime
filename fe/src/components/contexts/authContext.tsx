@@ -1,10 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { me } from "@/apis/auth.api";
-
-export type Profile = {
-  email: string;
-  id: string;
-};
+import type { Profile } from "@/entities/user";
 
 type AuthContext = {
   isAuthenticated: boolean;
