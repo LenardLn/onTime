@@ -1,6 +1,6 @@
 import { request } from "@/apiConfig";
-import type { Profile } from "@/components/contexts/authContext";
 import type { Credentials } from "@/entities/credentials";
+import type { Profile } from "@/entities/user";
 
 export const register = async (credentials: Credentials) => {
   return await request<Credentials>("post", "/register", credentials);

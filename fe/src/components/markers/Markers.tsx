@@ -1,5 +1,7 @@
 import { Marker, type MarkerEvent } from "@vis.gl/react-maplibre";
 import MarkerInfoCard from "../marker-info-card/MarkerInfoCard";
+import type { BaseCoordinates } from "@/helpers/baseCoordinates";
+import { MapView, type MapViewMode } from "../map/MapComponent";
 
 export type MapMarker = {
   latitude: number;
@@ -7,13 +9,14 @@ export type MapMarker = {
 };
 
 interface MarkersProps {
-  markers: MapMarker[];
-  handleMarkers: (e: MarkerEvent<MouseEvent>, marker: MapMarker) => void;
-  selectedMarkers: MapMarker[];
+  markers: BaseCoordinates[];
+  handleMarkers: (e: MarkerEvent<MouseEvent>, marker: BaseCoordinates) => void;
+  selectedMarkers: BaseCoordinates[];
   onDragEnd: (
-    oldMarker: MapMarker,
+    oldMarker: BaseCoordinates,
     newCoords: { lat: number; lng: number },
   ) => void;
+  mode: MapViewMode;
 }
 
 const Markers = ({
@@ -21,19 +24,20 @@ const Markers = ({
   handleMarkers,
   selectedMarkers,
   onDragEnd,
+  mode,
 }: MarkersProps) => {
+  if (mode !== MapView.EDIT) return null;
+
   return (
     <div>
       {markers.map((marker) => (
         <Marker
-          key={`${marker.latitude}-${marker.longitude}`}
+          key={`${marker.order_index}`}
           longitude={marker.longitude}
           latitude={marker.latitude}
           color="red"
-          draggable
-          onClick={(e) => {
-            handleMarkers(e, marker);
-          }}
+          draggable={mode === MapView.EDIT}
+          onClick={(e) => handleMarkers(e, marker)}
           onDragEnd={(e) => {
             const { lat, lng } = e.lngLat;
             onDragEnd(marker, { lat, lng });

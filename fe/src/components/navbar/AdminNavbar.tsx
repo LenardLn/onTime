@@ -21,6 +21,7 @@ import {
 } from "../shadcn/sidebar";
 import { themedSvg } from "../utils/themedSvg";
 import UserUtilitiesSidebar from "./UserUtilitiesSidebar";
+import { appPaths } from "@/entities/enums/appPaths";
 
 const AdminNavbar = () => {
   const { theme } = useThemeContext();
@@ -41,14 +42,20 @@ const AdminNavbar = () => {
     {
       labelKey: "admin.dashboard",
       tooltipKey: "admin.dashboard",
-      to: "/admin/dashboard",
+      to: appPaths.adminDashboard,
       iconSvg: dashboardSvg,
     },
-    { labelKey: "admin.lines", tooltipKey: "admin.lines", iconSvg: linesSvg },
+    {
+      labelKey: "admin.lines",
+      tooltipKey: "admin.lines",
+      iconSvg: linesSvg,
+      to: appPaths.adminLines,
+    },
     {
       labelKey: "admin.routes",
       tooltipKey: "admin.routes",
       iconSvg: routesSvg,
+      to: appPaths.adminRoutes,
     },
     {
       labelKey: "admin.stations",

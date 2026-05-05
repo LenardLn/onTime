@@ -1,9 +1,5 @@
-// hooks/useUserUtilities.ts
-
-import { useThemeContext } from "@/components/contexts/ThemeContextProvider";
 import { useTranslation } from "react-i18next";
 import { useAuthContext } from "@/components/contexts/authContext";
-
 import ENSvg from "@/assets/EN.svg";
 import ROSvg from "@/assets/RO.svg";
 import darkSvg from "@/assets/dark.svg";
@@ -11,6 +7,7 @@ import lightSvg from "@/assets/light.svg";
 import profileSvg from "@/assets/profile.svg";
 import { themedSvg } from "@/components/utils/themedSvg";
 import { useNavigate } from "react-router-dom";
+import { useThemeContext } from "@/components/contexts/ThemeContextProvider";
 
 export type MenuItem = {
   key: string;

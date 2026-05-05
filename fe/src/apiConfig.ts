@@ -11,6 +11,7 @@ export const request = async <T = any>(
   url: string,
   data?: any,
   withCredentials?: boolean,
+  params?: any,
 ): Promise<T> => {
   try {
     const response = await axiosInstance.request<T>({
@@ -18,10 +19,13 @@ export const request = async <T = any>(
       method,
       data,
       withCredentials,
+      params,
     });
 
     return response.data;
   } catch (error: any) {
-    throw new Error(error.message);
+    const message = error?.response?.data?.message || error?.message;
+
+    throw new Error(message);
   }
 };

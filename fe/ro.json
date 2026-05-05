@@ -19,7 +19,13 @@
     "toggle": "Comută",
     "language": "Limbă",
     "theme": "Tematică",
-    "logout": "Deconectare"
+    "logout": "Deconectare",
+    "delete": "Șterge",
+    "edit": "Editează",
+    "add": "Adaugă",
+    "name": "Nume",
+    "action": "Acțiune",
+    "viewRoute": "Vezi Traseu"
   },
   "errors": {
     "isRequired": "{{field}} este obligatoriu",

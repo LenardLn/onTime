@@ -7,6 +7,11 @@ import { useAuthContext } from "./components/contexts/authContext";
 import AdminLayout from "./pages/admin/adminLayout";
 import DashboardPage from "./pages/admin/dashboardPage";
 import ProfilePage from "./pages/admin/profilePage";
+import LinesPage from "./pages/admin/linesPage";
+import { appPaths } from "./entities/enums/appPaths";
+import LineDetailsPage from "./pages/admin/lineDetailsPage";
+import RoutePage from "./pages/admin/routePages";
+import RouteDetailsPage from "./pages/admin/routeDetailsPage";
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAuthContext();
@@ -46,6 +51,22 @@ const router = createBrowserRouter([
       {
         path: "profile",
         element: <ProfilePage />,
+      },
+      {
+        path: "lines",
+        element: <LinesPage />,
+      },
+      {
+        path: appPaths.adminLineDetails(":lineId"),
+        element: <LineDetailsPage />,
+      },
+      {
+        path: appPaths.adminRoutes,
+        element: <RoutePage />,
+      },
+      {
+        path: appPaths.adminRouteDetails(":id"),
+        element: <RouteDetailsPage />,
       },
     ],
   },
