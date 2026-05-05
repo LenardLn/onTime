@@ -31,6 +31,16 @@ export const getRouteDetails = async (filters: RouteFilters) => {
   );
 };
 
+export const getRouteDetails2 = async (filters: RouteFilters) => {
+  return await request(
+    "get",
+    "/route/test",
+    undefined,
+    true,
+    buildQueryParams(filters),
+  );
+};
+
 export const getStationDetails = async (id: string) => {
   return await request(
     "get",

@@ -5,6 +5,7 @@ import {
   Layer,
   type MapLayerMouseEvent,
   type MarkerEvent,
+  Marker,
 } from "@vis.gl/react-maplibre";
 import type { FeatureCollection, LineString } from "geojson";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -58,10 +59,10 @@ const MapComponent = ({ markerList, mode }: MapComponentProps) => {
       prev.map((m) =>
         m.latitude === oldMarker.latitude && m.longitude === oldMarker.longitude
           ? {
-              latitude: newCoords.lat,
-              longitude: newCoords.lng,
-              order_index: m.order_index,
-            }
+            latitude: newCoords.lat,
+            longitude: newCoords.lng,
+            order_index: m.order_index,
+          }
           : m,
       ),
     );
@@ -92,15 +93,15 @@ const MapComponent = ({ markerList, mode }: MapComponentProps) => {
     features:
       markers.length > 1
         ? [
-            {
-              type: "Feature",
-              geometry: {
-                type: "LineString",
-                coordinates: markers.map((m) => [m.longitude, m.latitude]),
-              },
-              properties: {},
+          {
+            type: "Feature",
+            geometry: {
+              type: "LineString",
+              coordinates: markers.map((m) => [m.longitude, m.latitude]),
             },
-          ]
+            properties: {},
+          },
+        ]
         : [],
   };
 
@@ -130,6 +131,13 @@ const MapComponent = ({ markerList, mode }: MapComponentProps) => {
         onDragEnd={handleMarkerDragEnd}
         mode={mode}
       />
+      <Marker
+        latitude={47.65804539306299}
+        longitude={23.503012814572486}
+        color="red"
+      >
+        <div>test123</div>
+      </Marker>
       {markers.length > 1 && (
         <Source id="route" type="geojson" data={routeGeoJSON}>
           <Layer

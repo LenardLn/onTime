@@ -33,8 +33,8 @@ const Markers = ({
       {markers.map((marker) => (
         <Marker
           key={`${marker.order_index}`}
-          longitude={marker.longitude}
-          latitude={marker.latitude}
+          latitude={23.7188733143219}
+          longitude={47.6700745848841}
           color="red"
           draggable={mode === MapView.EDIT}
           onClick={(e) => handleMarkers(e, marker)}
