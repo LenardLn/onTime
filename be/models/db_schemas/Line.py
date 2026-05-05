@@ -12,8 +12,14 @@ class Line(Base):
     name: Mapped[str] = mapped_column(String, nullable=False)
 
     routes: Mapped[list["Route"]] = relationship(
+        "Route",
         back_populates="line",
         cascade="all, delete-orphan"
     )
-    
-    line_stations = relationship("LineStation", back_populates="line")
+
+    line_stations: Mapped[list["LineStation"]] = relationship(
+        "LineStation",
+        back_populates="line",
+        order_by="LineStation.order_index",
+        cascade="all, delete-orphan"
+    )
