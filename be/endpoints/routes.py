@@ -22,68 +22,7 @@ router = APIRouter(
 )
 
 
-@router.get("", response_model=Route)
-async def get_routes(
-    line_ids: Optional[List[int]] = Query(default=None),
-    station_ids: Optional[List[int]] = Query(default=None),
-    db: Session = Depends(get_db)
-):
-    query = db.query(RouteDB, UserDB).join(
-        UserDB,
-        RouteDB.created_by == UserDB.id
-    )
-
-    if station_ids:
-        lines = db.query(StationDB.line_id).filter(
-            StationDB.station_id.in_(station_ids)
-        ).distinct().all()
-
-        if not lines:
-            raise StationNotFoundError()
-
-        station_line_ids = [line[0] for line in lines]
-
-        if line_ids:
-            line_ids = list(set(line_ids) & set(station_line_ids))
-        else:
-            line_ids = station_line_ids
-
-    if line_ids:
-        query = query.filter(RouteDB.line_id.in_(line_ids))
-
-    rows = query.order_by(
-        RouteDB.line_id,
-        RouteDB.order_index
-    ).all()
-
-    if not rows:
-        raise LineNotFoundError()
-
-    latest_route, latest_user = max(
-        rows,
-        key=lambda row: row[0].created_at
-    )
-
-    return {
-        "routes": [
-            {
-                "id": route.id,
-                "latitude": route.lat,
-                "longitude": route.long,
-                "line_id": route.line_id,
-                "order_index": route.order_index,
-            }
-            for route, _ in rows
-        ],
-        "created_at": str(latest_route.created_at),
-        "created_by": {
-            "id": latest_user.id,
-            "email": latest_user.email,
-        } if latest_user else None,
-    }
-
-
-@router.get("/test")
+@router.get("")
 async def get_routes(
     line_ids: Optional[List[int]] = Query(default=None),
     db: Session = Depends(get_db)
