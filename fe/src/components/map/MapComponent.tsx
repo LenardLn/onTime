@@ -36,13 +36,6 @@ const MapComponent = ({ markerList, mode, routeData }: MapComponentProps) => {
 
   const [selectedMarker, setSelectedMarker] = useState<BaseCoordinates[]>([]);
   const { theme } = useThemeContext();
-  const [data, setData] = useState(routeData || [])
-
-  useEffect(() => {
-    if (routeData) {
-      setData(routeData);
-    }
-  }, [data])
 
   const [markers, setMarkers] = useState<BaseCoordinates[]>(markerList || []);
 
@@ -124,7 +117,7 @@ const MapComponent = ({ markerList, mode, routeData }: MapComponentProps) => {
         onDragEnd={handleMarkerDragEnd}
         mode={mode}
       />
-      {data?.map((route) =>
+      {routeData?.map((route) =>
         route.stations.map((station) => (
           <Marker
             key={`${route.id}-${station.id}`}
@@ -143,7 +136,7 @@ const MapComponent = ({ markerList, mode, routeData }: MapComponentProps) => {
       >
         <div>test123</div>
       </Marker>
-      {data?.map((item, index: number) => {
+      {routeData?.map((item, index: number) => {
         const geojson: FeatureCollection<LineString> = {
           type: "FeatureCollection",
           features:
