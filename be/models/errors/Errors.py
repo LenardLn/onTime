@@ -35,6 +35,14 @@ class InvalideCredentials(AppError):
             status_code=401
         )
 
+class NoLineIdsProvided(AppError):
+    def __init__(self):
+        super().__init__(
+            message="No line ids provided",
+            error_code="error.not_line_ids_provided",
+            status_code=401
+        )
+
 
 class NotAuthenticatedError(AppError):
     def __init__(self):
@@ -90,7 +98,8 @@ class InvalidUserError(AppError):
             error_code=Errors.NOT_FOUND_USER,
             status_code=404
         )
-        
+
+
 class LineNotFoundError(AppError):
     def __init__(self):
         super().__init__(
@@ -99,6 +108,7 @@ class LineNotFoundError(AppError):
             status_code=404
         )
 
+
 class RouteNotFoundError(AppError):
     def __init__(self):
         super().__init__(
@@ -106,6 +116,7 @@ class RouteNotFoundError(AppError):
             error_code=Errors.ROUTE_NOT_FOUND,
             status_code=404
         )
+
 
 class StationNotFoundError(AppError):
     def __init__(self):

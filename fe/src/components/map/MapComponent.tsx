@@ -5,13 +5,15 @@ import {
   Layer,
   type MapLayerMouseEvent,
   type MarkerEvent,
+  Marker,
 } from "@vis.gl/react-maplibre";
 import type { FeatureCollection, LineString } from "geojson";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Markers from "../markers/Markers";
 import { useThemeContext } from "../contexts/ThemeContextProvider";
 import type { BaseCoordinates } from "@/helpers/baseCoordinates";
+import type { RouteData } from "@/entities/route";
 
 export const MapView = {
   VIEW: "view",
@@ -21,11 +23,12 @@ export const MapView = {
 export type MapViewMode = (typeof MapView)[keyof typeof MapView];
 
 interface MapComponentProps {
-  markerList?: BaseCoordinates[];
+  markerList?: BaseCoordinates[]
+  routeData?: RouteData[];
   mode: MapViewMode;
 }
 
-const MapComponent = ({ markerList, mode }: MapComponentProps) => {
+const MapComponent = ({ markerList, mode, routeData }: MapComponentProps) => {
   const bounds: [[number, number], [number, number]] = [
     [23.439274, 47.617155], // SW [lng, lat]
     [23.729459, 47.686301], // NE [lng, lat]
@@ -58,10 +61,10 @@ const MapComponent = ({ markerList, mode }: MapComponentProps) => {
       prev.map((m) =>
         m.latitude === oldMarker.latitude && m.longitude === oldMarker.longitude
           ? {
-              latitude: newCoords.lat,
-              longitude: newCoords.lng,
-              order_index: m.order_index,
-            }
+            latitude: newCoords.lat,
+            longitude: newCoords.lng,
+            order_index: m.order_index,
+          }
           : m,
       ),
     );
@@ -87,22 +90,6 @@ const MapComponent = ({ markerList, mode }: MapComponentProps) => {
     });
   };
 
-  const routeGeoJSON: FeatureCollection<LineString> = {
-    type: "FeatureCollection",
-    features:
-      markers.length > 1
-        ? [
-            {
-              type: "Feature",
-              geometry: {
-                type: "LineString",
-                coordinates: markers.map((m) => [m.longitude, m.latitude]),
-              },
-              properties: {},
-            },
-          ]
-        : [],
-  };
 
   return (
     <Map
@@ -130,18 +117,62 @@ const MapComponent = ({ markerList, mode }: MapComponentProps) => {
         onDragEnd={handleMarkerDragEnd}
         mode={mode}
       />
-      {markers.length > 1 && (
-        <Source id="route" type="geojson" data={routeGeoJSON}>
-          <Layer
-            id="route-line"
-            type="line"
-            paint={{
-              "line-color": "#007bff",
-              "line-width": 4,
-            }}
-          />
-        </Source>
+      {routeData?.map((route) =>
+        route.stations.map((station) => (
+          <Marker
+            key={`${route.id}-${station.id}`}
+            latitude={Number(station.lat)}
+            longitude={Number(station.long)}
+            color="red"
+          >
+            <div>{station.name}</div>
+          </Marker>
+        ))
       )}
+      <Marker
+        latitude={47.65804539306299}
+        longitude={23.503012814572486}
+        color="red"
+      >
+        <div>test123</div>
+      </Marker>
+      {routeData?.map((item, index: number) => {
+        const geojson: FeatureCollection<LineString> = {
+          type: "FeatureCollection",
+          features:
+            item.routes?.length > 1
+              ? [
+                {
+                  type: "Feature",
+                  geometry: {
+                    type: "LineString",
+                    coordinates: item.routes.map((m) => [
+                      Number(m.long),
+                      Number(m.lat),
+                    ]),
+                  },
+                  properties: {},
+                },
+              ]
+              : [],
+        };
+
+        const sourceId = `route-${item.id}`;
+        const layerId = `route-line-${item.id}`;
+
+        return (
+          <Source key={sourceId} id={sourceId} type="geojson" data={geojson}>
+            <Layer
+              id={layerId}
+              type="line"
+              paint={{
+                "line-color": index % 2 ? "red" : "green",
+                "line-width": 4,
+              }}
+            />
+          </Source>
+        );
+      })}
     </Map>
   );
 };

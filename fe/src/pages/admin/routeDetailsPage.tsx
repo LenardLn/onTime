@@ -8,16 +8,16 @@ const LineDetailsPage = () => {
   const { id } = useParams();
 
   const {
-    data: route,
+    data,
     isLoading,
     isError,
-    error,
+    error
   } = useRoute({ line_ids: [id!] });
 
   useErrorMessage({ isError, error });
   if (isLoading) return <PageLoader />;
 
-  return <MapComponent markerList={route?.routes} mode={MapView.VIEW} />;
+  return <MapComponent mode={MapView.VIEW} routeData={data?.response} />;
 };
 
 export default LineDetailsPage;

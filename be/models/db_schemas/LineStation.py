@@ -1,29 +1,28 @@
 from typing import Optional
 from datetime import datetime, timezone
 
-from models.db_schemas.Line import Line
-from models.db_schemas.LineStation import LineStation
-from sqlalchemy import DateTime, Integer, Float, ForeignKey
+from sqlalchemy import Integer, ForeignKey, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from models.db_schemas.Base import Base
 
 
-class Route(Base):
-    __tablename__ = "routes"
+class LineStation(Base):
+    __tablename__ = "line_stations"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
 
-    lat: Mapped[float] = mapped_column(Float, nullable=False)
-    long: Mapped[float] = mapped_column(Float, nullable=False)
-
     line_id: Mapped[int] = mapped_column(
         ForeignKey("lines.id"),
-        nullable=False,
-        index=True
+        nullable=False
     )
 
-    line: Mapped[Line] = relationship(back_populates="routes")
+    station_id: Mapped[int] = mapped_column(
+        ForeignKey("stations.id"),
+        nullable=False
+    )
+
+    order_index: Mapped[int] = mapped_column(Integer, nullable=False)
 
     created_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime,
@@ -36,7 +35,13 @@ class Route(Base):
         nullable=True
     )
 
-    order_index: Mapped[Optional[int]] = mapped_column(
-        Integer,
-        nullable=True
+    # relationships
+    line = relationship(
+        "Line",
+        back_populates="line_stations"
+    )
+
+    station = relationship(
+        "Station",
+        lazy="selectin"
     )

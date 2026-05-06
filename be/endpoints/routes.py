@@ -2,14 +2,17 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from db import get_db
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload, selectinload
 from models.RouteModel import Route, RouteCreate, RouteUpdate
 from helpers.get_current_user import get_current_user
 from models.db_schemas.Route import Route as RouteDB
 from models.db_schemas.Station import Station as StationDB
 from datetime import datetime, timezone
 from models.db_schemas.User import User as UserDB
-from models.errors.Errors import RouteNotFoundError, StationNotFoundError, LineNotFoundError
+from models.db_schemas.LineStation import LineStation as LineStationDB
+from models.db_schemas.Station import Station as StationDB
+from models.db_schemas.Line import Line as LineDB
+from models.errors.Errors import NoLineIdsProvided, RouteNotFoundError, StationNotFoundError, LineNotFoundError
 
 router = APIRouter()
 
@@ -19,67 +22,61 @@ router = APIRouter(
 )
 
 
-@router.get("", response_model=Route)
+@router.get("")
 async def get_routes(
     line_ids: Optional[List[int]] = Query(default=None),
-    station_ids: Optional[List[int]] = Query(default=None),
     db: Session = Depends(get_db)
 ):
-    query = db.query(RouteDB, UserDB).join(
-        UserDB,
-        RouteDB.created_by == UserDB.id
+    if not line_ids:
+        raise NoLineIdsProvided()
+
+    lines = (
+        db.query(LineDB)
+        .options(
+            selectinload(LineDB.routes),
+            selectinload(LineDB.line_stations)
+            .selectinload(LineStationDB.station)
+        )
+        .filter(LineDB.id.in_(line_ids))
+        .all()
     )
 
-    if station_ids:
-        lines = db.query(StationDB.line_id).filter(
-            StationDB.station_id.in_(station_ids)
-        ).distinct().all()
+    # transform data
+    result = [
+        {
+            "id": line.id,
+            "name": line.name,
 
-        if not lines:
-            raise StationNotFoundError()
+            # ROUTES
+            "routes": [
+                {
+                    "id": r.id,
+                    "lat": r.lat,
+                    "long": r.long,
+                    "order_index": r.order_index
+                }
+                for r in sorted(line.routes, key=lambda x: x.order_index)
+            ],
 
-        station_line_ids = [line[0] for line in lines]
-
-        if line_ids:
-            line_ids = list(set(line_ids) & set(station_line_ids))
-        else:
-            line_ids = station_line_ids
-
-    if line_ids:
-        query = query.filter(RouteDB.line_id.in_(line_ids))
-
-    rows = query.order_by(
-        RouteDB.line_id,
-        RouteDB.order_index
-    ).all()
-
-    if not rows:
-        raise LineNotFoundError()
-
-    latest_route, latest_user = max(
-        rows,
-        key=lambda row: row[0].created_at
-    )
+            # STATIONS
+            "stations": [
+                {
+                    "id": ls.station.id,
+                    "name": ls.station.name,
+                    "lat": ls.station.lat,
+                    "long": ls.station.long,
+                    "order_index": ls.order_index
+                }
+                for ls in sorted(line.line_stations, key=lambda x: x.order_index)
+            ]
+        }
+        for line in lines
+    ]
 
     return {
-        "routes": [
-            {
-                "id": route.id,
-                "latitude": route.lat,
-                "longitude": route.long,
-                "line_id": route.line_id,
-                "order_index": route.order_index,
-            }
-            for route, _ in rows
-        ],
-        "created_at": str(latest_route.created_at),
-        "created_by": {
-            "id": latest_user.id,
-            "email": latest_user.email,
-        } if latest_user else None,
+        "line_ids": line_ids,  # just for information
+        "response": result
     }
-
-# individual create for now, will need to be able to add array of items
 
 
 @router.post("", response_model=Route)
