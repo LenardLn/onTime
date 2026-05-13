@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 
 const useLine = (id: string) => {
   return useQuery<Line[], Error>({
-    queryKey: [queryKeys.rou, genericQueryKeys.LIST],
+    queryKey: [queryKeys.ROUTES, genericQueryKeys.LIST],
     queryFn: () => getLineDetails(id),
     staleTime: queryTime("1h"),
   });

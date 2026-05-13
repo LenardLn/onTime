@@ -37,3 +37,12 @@ class RouteUpdate(BaseModel):
     long: Optional[float] = None
     line_id: Optional[int] = None
     order_index: Optional[int] = None
+
+
+class RouteCreatePayload(BaseModel):
+    routes: list[RouteCreate]
+    waypoints: list[RouteCreate]
+
+
+class CreateRouteResponse(BaseModel):
+    message: str

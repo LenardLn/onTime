@@ -1,7 +1,7 @@
 export type BaseCoordinates = {
   id?: number;
-  latitude: number;
-  longitude: number;
+  lat: number;
+  long: number;
   line_id?: number;
   order_index: number;
 };

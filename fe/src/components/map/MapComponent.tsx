@@ -19,12 +19,13 @@ import axios from "axios";
 export const MapView = {
   VIEW: "view",
   EDIT: "edit",
+  CREATE: "create",
 } as const;
 
 export type MapViewMode = (typeof MapView)[keyof typeof MapView];
 
 interface MapComponentProps {
-  markerList?: BaseCoordinates[]
+  markerList?: BaseCoordinates[];
   routeData?: RouteData[];
   mode: MapViewMode;
 }
@@ -34,29 +35,7 @@ const MapComponent = ({ markerList, mode, routeData }: MapComponentProps) => {
     [23.439274, 47.617155], // SW [lng, lat]
     [23.729459, 47.686301], // NE [lng, lat]
   ];
-  const [route, setRoute] = useState<{ long: number, lat: number }[]>([])
-
-  async function test() {
-    if (coord.length > 1) {
-      const GEOAPIFY_KEY = import.meta.env.VITE_GEOAPIFY_KEY;
-      const response = await axios.get(
-        `https://api.geoapify.com/v1/routing?waypoints=${coord[0].latitude}%2C${coord[0].longitude}%7C${coord[1].latitude}%2C${coord[1].longitude}&mode=drive&apiKey=${GEOAPIFY_KEY}`
-      )
-
-      const waypoints = response.data.properties.waypoints // start and end points
-      const routes = response.data.features[0].geometry.coordinates // points between waypoints
-
-      setRoute(
-        routes[0].map((item: number[]) => ({
-          long: item[0],
-          lat: item[1]
-        }))
-      )
-    }
-
-  }
-
-
+  const [route, setRoute] = useState<{ long: number; lat: number }[]>([]);
 
   const [selectedMarker, setSelectedMarker] = useState<BaseCoordinates[]>([]);
   const { theme } = useThemeContext();
@@ -64,9 +43,45 @@ const MapComponent = ({ markerList, mode, routeData }: MapComponentProps) => {
   const [markers, setMarkers] = useState<BaseCoordinates[]>(markerList || []);
   const [coord, setCoord] = useState<BaseCoordinates[]>([]);
 
+  const test = async () => {
+    if (coord.length < 2) return;
+
+    const GEOAPIFY_KEY = import.meta.env.VITE_GEOAPIFY_KEY;
+
+    const lastTwo = coord.slice(-2);
+
+    const waypoints = lastTwo.map((c) => `${c.lat},${c.long}`).join("|");
+
+    const response = await axios.get(
+      `https://api.geoapify.com/v1/routing?waypoints=${waypoints}&mode=drive&apiKey=${GEOAPIFY_KEY}`,
+    );
+
+    const geometry = response.data.features?.[0]?.geometry;
+
+    if (!geometry) return;
+
+    const coords: [number, number][] = geometry.coordinates.flat();
+
+    const newSegment = coords.map((r) => ({
+      lat: r[1],
+      long: r[0],
+      isMarker: true,
+    }));
+
+    setRoute((prev) => {
+      if (prev.length === 0) return newSegment;
+
+      return [...prev, ...newSegment.slice(1)];
+    });
+  };
+
   useEffect(() => {
-    test()
-  }, [coord])
+    const timeout = setTimeout(() => {
+      test();
+    }, 400);
+
+    return () => clearTimeout(timeout);
+  }, [coord.length]);
 
   const addMarker = (e: MapLayerMouseEvent) => {
     // if (mode !== "edit") return;
@@ -74,8 +89,8 @@ const MapComponent = ({ markerList, mode, routeData }: MapComponentProps) => {
     const { lat, lng } = e.lngLat;
 
     const newMarker: BaseCoordinates = {
-      latitude: lat,
-      longitude: lng,
+      lat: lat,
+      long: lng,
       order_index: markers.length,
     };
 
@@ -88,12 +103,12 @@ const MapComponent = ({ markerList, mode, routeData }: MapComponentProps) => {
   ) => {
     setMarkers((prev) =>
       prev.map((m) =>
-        m.latitude === oldMarker.latitude && m.longitude === oldMarker.longitude
+        m.lat === oldMarker.lat && m.long === oldMarker.long
           ? {
-            latitude: newCoords.lat,
-            longitude: newCoords.lng,
-            order_index: m.order_index,
-          }
+              lat: newCoords.lat,
+              long: newCoords.lng,
+              order_index: m.order_index,
+            }
           : m,
       ),
     );
@@ -106,57 +121,53 @@ const MapComponent = ({ markerList, mode, routeData }: MapComponentProps) => {
     e.originalEvent.stopPropagation();
     setSelectedMarker((prev) => {
       const exists = prev.some(
-        (m) =>
-          m.latitude === marker.latitude && m.longitude === marker.longitude,
+        (m) => m.lat === marker.lat && m.long === marker.long,
       );
       if (exists) {
         return prev.filter(
-          (m) =>
-            m.latitude !== marker.latitude || m.longitude !== marker.longitude,
+          (m) => m.lat !== marker.lat || m.long !== marker.long,
         );
       }
       return [...prev, marker];
     });
   };
 
+  function renderRoute(route: { long: number; lat: number }[]) {
+    if (route.length < 1) return;
 
-  function renderRoute(route: { long: number, lat: number }[]) {
-    if (route.length < 1) return
-
-    console.log(route, "past")
+    // console.log(route, "past");
     const geojson: FeatureCollection<LineString> = {
       type: "FeatureCollection",
-      features:
-        [
-          {
-            type: "Feature",
-            geometry: {
-              type: "LineString",
-              coordinates: route.map((m) => [
-                Number(m.long),
-                Number(m.lat),
-              ]),
-            },
-            properties: {},
+      features: [
+        {
+          type: "Feature",
+          geometry: {
+            type: "LineString",
+            coordinates: route.map((m) => [Number(m.long), Number(m.lat)]),
           },
-        ]
+          properties: {},
+        },
+      ],
     };
 
     return (
-      <Source key={1} id={"1"} type="geojson" data={geojson}>
+      <Source
+        key={JSON.stringify(route)}
+        id={"1"}
+        type="geojson"
+        data={geojson}
+      >
         <Layer
           id={"2"}
           type="line"
           paint={{
-            "line-color": "green",
+            "line-color": "red",
             "line-width": 4,
           }}
         />
       </Source>
     );
-
   }
-
 
   return (
     <Map
@@ -194,16 +205,17 @@ const MapComponent = ({ markerList, mode, routeData }: MapComponentProps) => {
           >
             <div>{station.name}</div>
           </Marker>
-        ))
+        )),
       )}
       {coord.map((item, i) => {
-        return <Marker
-          key={i}
-          latitude={item.latitude}
-          longitude={item.longitude}
-          color="red">
-
-        </Marker>
+        return (
+          <Marker
+            key={i}
+            latitude={item.lat}
+            longitude={item.long}
+            color="red"
+          ></Marker>
+        );
       })}
       {renderRoute(route)}
       {routeData?.map((item, index: number) => {
@@ -212,18 +224,18 @@ const MapComponent = ({ markerList, mode, routeData }: MapComponentProps) => {
           features:
             item.routes?.length > 1
               ? [
-                {
-                  type: "Feature",
-                  geometry: {
-                    type: "LineString",
-                    coordinates: item.routes.map((m) => [
-                      Number(m.long),
-                      Number(m.lat),
-                    ]),
+                  {
+                    type: "Feature",
+                    geometry: {
+                      type: "LineString",
+                      coordinates: item.routes.map((m) => [
+                        Number(m.long),
+                        Number(m.lat),
+                      ]),
+                    },
+                    properties: {},
                   },
-                  properties: {},
-                },
-              ]
+                ]
               : [],
         };
 

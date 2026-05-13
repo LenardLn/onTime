@@ -208,7 +208,7 @@ th {
     @apply !h-20 !flex !items-center !gap-4 !px-4;
   }
   .menu-button:hover {
-    @apply !hover:cursor-pointer;
+    @apply hover:cursor-pointer;
   }
 
   .menu-button__icon {

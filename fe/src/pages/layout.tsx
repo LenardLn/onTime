@@ -4,7 +4,7 @@ import { Outlet } from "react-router-dom";
 
 const Layout = () => {
   return (
-    <Container className="justify-center h-screen">
+    <Container className="justify-center w-auto">
       <Navbar />
       <Outlet />
     </Container>
