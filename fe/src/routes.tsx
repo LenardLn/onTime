@@ -12,7 +12,8 @@ import { appPaths } from "./entities/enums/appPaths";
 import LineDetailsPage from "./pages/admin/lineDetailsPage";
 import RoutePage from "./pages/admin/routePages";
 import RouteDetailsPage from "./pages/admin/routeDetailsPage";
-import CreateRoutePage from "./pages/admin/createRoutePage";
+import EditRoutePage from "./pages/admin/manageRoutePage";
+import ManageRoutePage from "./pages/admin/manageRoutePage";
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAuthContext();
@@ -71,7 +72,11 @@ const router = createBrowserRouter([
       },
       {
         path: appPaths.adminCreateRoute(":id"),
-        element: <CreateRoutePage />,
+        element: <ManageRoutePage />,
+      },
+      {
+        path: appPaths.adminEditRoute(":id"),
+        element: <EditRoutePage />,
       },
     ],
   },
