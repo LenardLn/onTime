@@ -9,17 +9,11 @@ export type Station = {
   order_index: number;
 };
 
-export type Route = {
-  id: string;
-  lat: number;
-  long: number;
-  order_index: number;
-};
 
 export type RouteData = {
   id: string;
   name: string;
-  routes: Route[];
+  routes: BaseCoordinates[];
   stations: Station[];
 };
 
@@ -29,8 +23,8 @@ export type RouteFilters = {
 };
 
 export type CreateRoutePayload = {
-  routes: Route[];
-  waypoints: Route[];
+  routes: BaseCoordinates[];
+  waypoints: BaseCoordinates[];
   // "created_at": "string",
   // "created_by": {
   //   "id": 0,

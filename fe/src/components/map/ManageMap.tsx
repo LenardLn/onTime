@@ -12,19 +12,42 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import Markers from "../markers/Markers";
 import { useThemeContext } from "../contexts/ThemeContextProvider";
 import type { BaseCoordinates } from "@/helpers/baseCoordinates";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import useCreateRoute from "@/hooks/admin/tanstack/useCreateRoute";
 import { Button } from "../shadcn/button";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
+import useRoute from "@/hooks/admin/tanstack/useRoute";
+import type { Station } from "@/entities/route";
+import { BusStation } from "../station/BusStation";
 
-const CreateMap = () => {
+const ManageMap = () => {
+  const location = useLocation();
   const { theme } = useThemeContext();
   const { id } = useParams();
 
   const [waypoints, setWaypoints] = useState<BaseCoordinates[]>([]);
   const [coord, setCoord] = useState<BaseCoordinates[]>([]);
   const [selectedMarker, setSelectedMarker] = useState<BaseCoordinates[]>([]);
+  const [stations, setStations] = useState<Station[]>([])
+
+
+  const isEdit = useMemo(() => location.pathname.includes('/edit'), []);
+
+  const {
+    data,
+    // isLoading,
+    // isError,
+    // error
+  } = useRoute({ line_ids: [id!] });
+
+  useEffect(() => {
+    const routeData = data?.response?.[0];
+    if (!isEdit || !routeData) return;
+
+    setCoord(routeData.routes);
+    setStations(routeData.stations);
+  }, [data?.response, isEdit]);
 
   const { mutateAsync: createRoute } = useCreateRoute();
 
@@ -80,15 +103,16 @@ const CreateMap = () => {
     oldMarker: BaseCoordinates,
     newCoords: { lat: number; lng: number },
   ) => {
+
     setWaypoints((prev) =>
       prev.map((m) =>
         m.lat === oldMarker.lat && m.long === oldMarker.long
           ? {
-              lat: newCoords.lat,
-              long: newCoords.lng,
-              order_index: m.order_index,
-              line_id: Number(id!),
-            }
+            lat: newCoords.lat,
+            long: newCoords.lng,
+            order_index: m.order_index,
+            line_id: Number(id!),
+          }
           : m,
       ),
     );
@@ -138,7 +162,6 @@ const CreateMap = () => {
   function renderRoute(
     route: { long: number; lat: number; order_index: number }[],
   ) {
-    // return;
     if (route.length < 1) return;
 
     const geojson: FeatureCollection<LineString> = {
@@ -163,7 +186,7 @@ const CreateMap = () => {
         data={geojson}
       >
         <Layer
-          id={"2"}
+          id={"1"}
           type="line"
           paint={{
             "line-color": "red",
@@ -173,6 +196,21 @@ const CreateMap = () => {
       </Source>
     );
   }
+
+  const handleStationDragEnd = (
+    station: Station,
+    coords: { lat: number; lng: number }
+  ) => {
+    console.log("station moved:", station.id, coords);
+
+    setStations((prev) =>
+      prev.map((s) =>
+        s.id === station.id
+          ? { ...s, lat: coords.lat, long: coords.lng }
+          : s
+      )
+    );
+  };
 
   return (
     <>
@@ -216,10 +254,18 @@ const CreateMap = () => {
             ></Marker>
           );
         })}
+        {stations.map((item, index) => (
+          <BusStation
+            key={item.id || index}
+            station={item}
+            draggable
+            onDragEnd={handleStationDragEnd}
+          />
+        ))}
         {renderRoute(coord)}
       </Map>
     </>
   );
 };
 
-export default CreateMap;
+export default ManageMap;

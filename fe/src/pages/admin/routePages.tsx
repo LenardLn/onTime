@@ -12,6 +12,7 @@ const RoutePage = () => {
   const columns = useLineColumns({
     getDetailPath: (id) => appPaths.adminRouteDetails(id),
     getCreateRoutePath: (id) => appPaths.adminCreateRoute(id),
+    getEditRoutePath: (id) => appPaths.adminEditRoute(id),
     actionColumnName: "",
   });
 

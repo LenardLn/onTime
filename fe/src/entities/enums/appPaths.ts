@@ -8,6 +8,7 @@ export const appPaths = {
   adminRoutes: "/admin/routes",
   adminRouteDetails: (id: number | string) => `/admin/routes/${id}`,
   adminCreateRoute: (id: number | string) => `/admin/routes/${id}/create`,
+  adminEditRoute: (id: number | string) => `/admin/routes/${id}/edit`,
   adminStations: "/admin/stations",
   adminStationDetails: (stationId: number | string) =>
     `/admin/stations/${stationId}`,

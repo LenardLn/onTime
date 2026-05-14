@@ -15,6 +15,7 @@ import { useThemeContext } from "../contexts/ThemeContextProvider";
 import type { BaseCoordinates } from "@/helpers/baseCoordinates";
 import type { RouteData } from "@/entities/route";
 import axios from "axios";
+import { BusStation } from "../station/BusStation";
 
 export const MapView = {
   VIEW: "view",
@@ -105,10 +106,10 @@ const MapComponent = ({ markerList, mode, routeData }: MapComponentProps) => {
       prev.map((m) =>
         m.lat === oldMarker.lat && m.long === oldMarker.long
           ? {
-              lat: newCoords.lat,
-              long: newCoords.lng,
-              order_index: m.order_index,
-            }
+            lat: newCoords.lat,
+            long: newCoords.lng,
+            order_index: m.order_index,
+          }
           : m,
       ),
     );
@@ -197,14 +198,7 @@ const MapComponent = ({ markerList, mode, routeData }: MapComponentProps) => {
       />
       {routeData?.map((route) =>
         route.stations.map((station) => (
-          <Marker
-            key={`${route.id}-${station.id}`}
-            latitude={Number(station.lat)}
-            longitude={Number(station.long)}
-            color="red"
-          >
-            <div>{station.name}</div>
-          </Marker>
+          <BusStation station={station} key={station.id} />
         )),
       )}
       {coord.map((item, i) => {
@@ -224,18 +218,18 @@ const MapComponent = ({ markerList, mode, routeData }: MapComponentProps) => {
           features:
             item.routes?.length > 1
               ? [
-                  {
-                    type: "Feature",
-                    geometry: {
-                      type: "LineString",
-                      coordinates: item.routes.map((m) => [
-                        Number(m.long),
-                        Number(m.lat),
-                      ]),
-                    },
-                    properties: {},
+                {
+                  type: "Feature",
+                  geometry: {
+                    type: "LineString",
+                    coordinates: item.routes.map((m) => [
+                      Number(m.long),
+                      Number(m.lat),
+                    ]),
                   },
-                ]
+                  properties: {},
+                },
+              ]
               : [],
         };
 

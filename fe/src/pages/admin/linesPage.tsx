@@ -8,7 +8,9 @@ import useErrorMessage from "@/hooks/admin/useFetchSideEffects";
 const LinesPage = () => {
   const { data: lines, isLoading, isError, error } = useLines();
   const columns = useLineColumns({
-    getDetailPath: (line) => appPaths.adminLineDetails(line.id),
+    getDetailPath: (line: any) => appPaths.adminLineDetails(line.id),
+    getCreateRoutePath: (line: any) => appPaths.adminCreateRoute(line.id),
+    getEditRoutePath: (line: any) => appPaths.adminEditRoute(line.id)
   });
   useErrorMessage({ isError, error });
 
