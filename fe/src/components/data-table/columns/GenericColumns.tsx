@@ -5,12 +5,14 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 interface LineColumnsProps {
-  getDetailPath: (row: any) => string;
+  getDetailPath: (id: string | number) => string;
+  getCreateRoutePath: (id: string | number) => string;
   actionColumnName?: string;
 }
 
 export const useLineColumns = ({
   getDetailPath,
+  getCreateRoutePath,
   actionColumnName,
 }: LineColumnsProps): ColumnDef<Line>[] => {
   const navigate = useNavigate();
@@ -24,11 +26,21 @@ export const useLineColumns = ({
     {
       id: "actions",
       header: t(`admin.${actionColumnName ? actionColumnName : "action"}`),
-      cell: ({ row }) => (
-        <Button onClick={() => navigate(getDetailPath(row.original))}>
-          View
-        </Button>
-      ),
+      cell: ({ row }) => {
+        console.log(row);
+        return (
+          <>
+            <Button onClick={() => navigate(getDetailPath(row.original.id))}>
+              View
+            </Button>
+            <Button
+              onClick={() => navigate(getCreateRoutePath(row.original.id))}
+            >
+              Create Route
+            </Button>
+          </>
+        );
+      },
     },
   ];
 };

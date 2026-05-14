@@ -3,14 +3,14 @@ import type { RouteFilters } from "@/entities/route";
 import { buildQueryParams } from "@/helpers/buildQueryParams";
 
 const adminApi = {
-  GET_LINES: "/line",
+  LINE: "/line",
   GET_LINE_DETAILS: (id: string) => `/line/${id}`,
   GET_STATION_DETAILS: (id: string) => `/station/${id}`,
-  GET_ROUTE: "/route",
+  ROUTE: "/route",
 } as const;
 
 const urls = {
-  getLines: adminApi.GET_LINES,
+  getLines: adminApi.LINE,
 };
 
 export const getLines = async () => {
@@ -24,7 +24,7 @@ export const getLineDetails = async (id: string) => {
 export const getRouteDetails = async (filters: RouteFilters) => {
   return await request(
     "get",
-    adminApi.GET_ROUTE,
+    adminApi.ROUTE,
     undefined,
     true,
     buildQueryParams(filters),
@@ -38,4 +38,12 @@ export const getStationDetails = async (id: string) => {
     undefined,
     true,
   );
+};
+
+export const createLine = async (line_name: string) => {
+  return await request("post", adminApi.LINE, { name: line_name }, true);
+};
+
+export const createRoute = async (routeData: any) => {
+  return await request("post", adminApi.ROUTE, routeData, true);
 };

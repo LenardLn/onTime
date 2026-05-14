@@ -1,14 +1,12 @@
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import Integer, Float, ForeignKey, DateTime, Index
+from models.db_schemas.Base import Base
 from typing import Optional
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Index, Integer, Float, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from models.db_schemas.Base import Base
-
-
-class Route(Base):
-    __tablename__ = "routes"
+class Route_Waypoints(Base):
+    __tablename__ = "route_waypoints"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
 
@@ -21,11 +19,12 @@ class Route(Base):
         index=True
     )
 
-    line: Mapped["Line"] = relationship(back_populates="routes")
+    line: Mapped["Line"] = relationship(back_populates="waypoints")
 
-    created_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime,
-        default=lambda: datetime.now(timezone.utc)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False
     )
 
     created_by: Mapped[Optional[int]] = mapped_column(
@@ -34,11 +33,8 @@ class Route(Base):
         nullable=True
     )
 
-    order_index: Mapped[Optional[int]] = mapped_column(
-        Integer,
-        nullable=False
-    )
+    order_index: Mapped[int] = mapped_column(Integer, nullable=False)
 
     __table_args__ = (
-        Index("idx_routes_line_order", "line_id", "order_index"),
+        Index("idx_line_order", "line_id", "order_index"),
     )

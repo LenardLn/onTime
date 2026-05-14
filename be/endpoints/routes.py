@@ -1,11 +1,12 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from pydantic import BaseModel
 from db import get_db
 from sqlalchemy.orm import Session, joinedload, selectinload
-from models.RouteModel import Route, RouteCreate, RouteUpdate
+from models.RouteModel import CreateRouteResponse, Route, RouteCreate, RouteUpdate, RouteCreatePayload
 from helpers.get_current_user import get_current_user
 from models.db_schemas.Route import Route as RouteDB
+from models.db_schemas.RouteWaypoints import Route_Waypoints as RouteWaypointDB
 from models.db_schemas.Station import Station as StationDB
 from datetime import datetime, timezone
 from models.db_schemas.User import User as UserDB
@@ -79,36 +80,58 @@ async def get_routes(
     }
 
 
-@router.post("", response_model=Route)
-async def create_route(data: RouteCreate, db: Session = Depends(get_db), user=Depends(get_current_user)):
+@router.post("", response_model=CreateRouteResponse)
+async def create_route(data: RouteCreatePayload, db: Session = Depends(get_db), user=Depends(get_current_user)):
+    now = datetime.now(timezone.utc)
 
-    new_route = RouteDB(
-        lat=data.lat,
-        long=data.long,
-        line_id=data.line_id,
-        created_by=user["id"],
-        order_index=data.order_index,
-        created_at=datetime.now(timezone.utc)
-    )
+    route_rows = [
+        RouteDB(
+            lat=r.lat,
+            long=r.long,
+            line_id=r.line_id,
+            order_index=r.order_index,
+            created_by=user["id"],
+            created_at=now
+        )
+        for r in data.routes
+    ]
 
-    db.add(new_route)
-    db.commit()
-    db.refresh(new_route)
+    waypoint_rows = [
+        RouteWaypointDB(
+            lat=w.lat,
+            long=w.long,
+            line_id=w.line_id,
+            order_index=w.order_index,
+            created_by=user["id"],
+            created_at=now
+        )
+        for w in data.waypoints
+    ]
 
-    return {
-        "routes": [{
-            "id": new_route.id,
-            "lat": new_route.lat,
-            "long": new_route.long,
-            "line_id": new_route.line_id,
-            "order_index": new_route.order_index,
-        }],
-        "created_at": str(new_route.created_at),
-        "created_by": {
-            "id": user["id"],
-            "email": user["email"],
-        }
-    }
+    try:
+        db.add_all(route_rows)
+        db.add_all(waypoint_rows)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+    return {"message": "Routes and waypoints created successfully"}
+
+# return {
+#     "routes": [{
+#         "id": new_route.id,
+#         "lat": new_route.lat,
+#         "long": new_route.long,
+#         "line_id": new_route.line_id,
+#         "order_index": new_route.order_index,
+#     }],
+#     "created_at": str(new_route.created_at),
+#     "created_by": {
+#         "id": user["id"],
+#         "email": user["email"],
+#     }
+# }
 
 
 @router.put("/{id}", response_model=Route)

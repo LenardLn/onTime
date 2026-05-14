@@ -16,7 +16,7 @@ interface MarkersProps {
     oldMarker: BaseCoordinates,
     newCoords: { lat: number; lng: number },
   ) => void;
-  mode: MapViewMode;
+  mode?: MapViewMode;
 }
 
 const Markers = ({
@@ -33,8 +33,8 @@ const Markers = ({
       {markers.map((marker) => (
         <Marker
           key={`${marker.order_index}`}
-          latitude={marker.latitude}
-          longitude={marker.longitude}
+          latitude={marker.lat}
+          longitude={marker.long}
           color="red"
           draggable={mode === MapView.EDIT}
           onClick={(e) => handleMarkers(e, marker)}

@@ -43,7 +43,7 @@ const AuthPage = ({ mode }: AuthPageProps) => {
   const samePasswordField = watch("password");
 
   return (
-    <Container className="w-auto text-3xl">
+    <Container className="w-1/2 text-3xl p-[10rem] mx-auto">
       <form
         className="grid gap-6 bg-black-200 !bg-background"
         onSubmit={handleSubmit(submitData)}
