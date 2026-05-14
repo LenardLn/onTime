@@ -76,7 +76,7 @@ const router = createBrowserRouter([
       },
       {
         path: appPaths.adminEditRoute(":id"),
-        element: <EditRoutePage />,
+        element: <ManageRoutePage />,
       },
     ],
   },
