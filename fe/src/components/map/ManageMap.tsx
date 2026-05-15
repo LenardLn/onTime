@@ -20,6 +20,7 @@ import { useLocation, useParams } from "react-router-dom";
 import useRoute from "@/hooks/admin/tanstack/useRoute";
 import type { Station } from "@/entities/route";
 import { BusStation } from "../station/BusStation";
+import { Waypoint } from "../waypoint/Waypoint";
 
 const ManageMap = () => {
   const location = useLocation();
@@ -30,6 +31,9 @@ const ManageMap = () => {
   const [coord, setCoord] = useState<BaseCoordinates[]>([]);
   const [selectedMarker, setSelectedMarker] = useState<BaseCoordinates[]>([]);
   const [stations, setStations] = useState<Station[]>([])
+  const [insertInfo, setInserInfo] = useState({ waypoint: "", insert: "" })
+
+  const [isCreate, setIsCreate] = useState(false)
 
 
   const isEdit = useMemo(() => location.pathname.includes('/edit'), []);
@@ -47,6 +51,7 @@ const ManageMap = () => {
 
     setCoord(routeData.routes);
     setStations(routeData.stations);
+    setWaypoints(routeData.waypoints);
   }, [data?.response, isEdit]);
 
   const { mutateAsync: createRoute } = useCreateRoute();
@@ -118,17 +123,24 @@ const ManageMap = () => {
     );
   };
 
-  const test = async () => {
+  const drawBusRoute = async () => {
     if (waypoints.length < 2) return;
 
     const GEOAPIFY_KEY = import.meta.env.VITE_GEOAPIFY_KEY;
 
     const lastTwo = waypoints.slice(-2);
+    let coordonates;
+    if (isCreate) {
+      coordonates = lastTwo.map((c) => `${c.lat},${c.long}`).join("|");
+    } else {
+      coordonates = waypoints.map((c) => `${c.lat},${c.long}`).join("|");
 
-    const lastTwoWaypoints = lastTwo.map((c) => `${c.lat},${c.long}`).join("|");
+    }
+
+
 
     const response = await axios.get(
-      `https://api.geoapify.com/v1/routing?waypoints=${lastTwoWaypoints}&mode=drive&apiKey=${GEOAPIFY_KEY}`,
+      `https://api.geoapify.com/v1/routing?waypoints=${coordonates}&mode=drive&apiKey=${GEOAPIFY_KEY}`,
     );
 
     const geometry = response.data.features?.[0]?.geometry;
@@ -144,16 +156,22 @@ const ManageMap = () => {
       order_index: coord.length + index,
     }));
 
-    setCoord((prev) => {
-      if (prev.length === 0) return newSegment;
+    if (isCreate) {
+      setCoord((prev) => {
+        if (prev.length === 0) return newSegment;
 
-      return [...prev, ...newSegment.slice(1)];
-    });
+        return [...prev, ...newSegment.slice(1)];
+      });
+
+    } else {
+      setCoord(newSegment)
+    }
+
   };
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      test();
+      drawBusRoute();
     }, 400);
 
     return () => clearTimeout(timeout);
@@ -212,13 +230,30 @@ const ManageMap = () => {
     );
   };
 
+  const handleWaypointDragEnd = (
+    waypoint: BaseCoordinates,
+    coords: { lat: number; lng: number }
+  ) => {
+    console.log("station moved:", waypoint.id, coords);
+
+    console.log(waypoint.id, waypoint)
+
+    setWaypoints((prev) =>
+      prev.map((s) =>
+        s.id === waypoint.id
+          ? { ...s, lat: coords.lat, long: coords.lng }
+          : s
+      )
+    );
+  };
+
   return (
     <>
       <Button
         className="z-100"
         onClick={async () => await handleCreateRoute(coord, waypoints)}
       >
-        Create Route
+        Create Route test
       </Button>
       <Map
         mapStyle={
@@ -246,12 +281,12 @@ const ManageMap = () => {
         />
         {waypoints.map((item, i) => {
           return (
-            <Marker
-              key={i}
-              latitude={item.lat}
-              longitude={item.long}
-              color="red"
-            ></Marker>
+            <Waypoint
+              key={item.id}
+              waypoint={item}
+              draggable
+              onDragEnd={handleWaypointDragEnd} />
+
           );
         })}
         {stations.map((item, index) => (

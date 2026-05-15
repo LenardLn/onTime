@@ -23,7 +23,7 @@ function BusStation({ station, onDragEnd, draggable = false }: BusStationProps) 
                 color="red"
                 draggable={draggable}
                 onDragEnd={(e) => {
-                    if (draggable) return
+                    if (!draggable) return
                     const { lat, lng } = e.lngLat;
 
                     console.log("dragged station:", station.id, { lat, lng });

@@ -46,12 +46,6 @@ const AdminNavbar = () => {
       iconSvg: dashboardSvg,
     },
     {
-      labelKey: "admin.lines",
-      tooltipKey: "admin.lines",
-      iconSvg: linesSvg,
-      to: appPaths.adminLines,
-    },
-    {
       labelKey: "admin.routes",
       tooltipKey: "admin.routes",
       iconSvg: routesSvg,

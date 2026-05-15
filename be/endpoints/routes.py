@@ -35,6 +35,7 @@ async def get_routes(
         db.query(LineDB)
         .options(
             selectinload(LineDB.routes),
+            selectinload(LineDB.waypoints),
             selectinload(LineDB.line_stations)
             .selectinload(LineStationDB.station)
         )
@@ -57,6 +58,16 @@ async def get_routes(
                     "order_index": r.order_index
                 }
                 for r in sorted(line.routes, key=lambda x: x.order_index)
+            ],
+            # WAYPOINTS
+            "waypoints": [
+                {
+                    "id": r.id,
+                    "lat": r.lat,
+                    "long": r.long,
+                    "order_index": r.order_index
+                }
+                for r in sorted(line.waypoints, key=lambda x: x.order_index)
             ],
 
             # STATIONS

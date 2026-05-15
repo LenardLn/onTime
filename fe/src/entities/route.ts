@@ -15,6 +15,7 @@ export type RouteData = {
   name: string;
   routes: BaseCoordinates[];
   stations: Station[];
+  waypoints: BaseCoordinates[];
 };
 
 export type RouteFilters = {
