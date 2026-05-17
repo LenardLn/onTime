@@ -1,7 +1,7 @@
 import { Marker, type MarkerEvent } from "@vis.gl/react-maplibre";
 import MarkerInfoCard from "../marker-info-card/MarkerInfoCard";
 import type { BaseCoordinates } from "@/helpers/baseCoordinates";
-import { MapView, type MapViewMode } from "../map/MapComponent";
+import { MapView, type MapViewMode } from "../map/ViewMap";
 
 export type MapMarker = {
   latitude: number;

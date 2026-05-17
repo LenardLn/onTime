@@ -1,10 +1,10 @@
 import { useThemeContext } from "../components/contexts/ThemeContextProvider";
-import MapComponent from "../components/map/MapComponent";
+import ViewMap from "../components/map/ViewMap";
 import "../css/HomePage.css";
 
 const HomePage = () => {
   const { theme } = useThemeContext();
-  return <MapComponent theme={theme} />;
+  return <ViewMap mode={"view"} />;
 };
 
 export default HomePage;

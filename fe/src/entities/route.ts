@@ -9,7 +9,6 @@ export type Station = {
   order_index: number;
 };
 
-
 export type RouteData = {
   id: string;
   name: string;
@@ -32,3 +31,5 @@ export type CreateRoutePayload = {
   //   "email": "string"
   // }
 };
+
+export type RouteUpdateType = "append" | "insert" | "move" | "full";

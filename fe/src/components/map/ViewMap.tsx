@@ -31,7 +31,7 @@ interface MapComponentProps {
   mode: MapViewMode;
 }
 
-const MapComponent = ({ markerList, mode, routeData }: MapComponentProps) => {
+const ViewMap = ({ markerList, mode, routeData }: MapComponentProps) => {
   const bounds: [[number, number], [number, number]] = [
     [23.439274, 47.617155], // SW [lng, lat]
     [23.729459, 47.686301], // NE [lng, lat]
@@ -106,10 +106,10 @@ const MapComponent = ({ markerList, mode, routeData }: MapComponentProps) => {
       prev.map((m) =>
         m.lat === oldMarker.lat && m.long === oldMarker.long
           ? {
-            lat: newCoords.lat,
-            long: newCoords.lng,
-            order_index: m.order_index,
-          }
+              lat: newCoords.lat,
+              long: newCoords.lng,
+              order_index: m.order_index,
+            }
           : m,
       ),
     );
@@ -136,7 +136,6 @@ const MapComponent = ({ markerList, mode, routeData }: MapComponentProps) => {
   function renderRoute(route: { long: number; lat: number }[]) {
     if (route.length < 1) return;
 
-    // console.log(route, "past");
     const geojson: FeatureCollection<LineString> = {
       type: "FeatureCollection",
       features: [
@@ -218,18 +217,18 @@ const MapComponent = ({ markerList, mode, routeData }: MapComponentProps) => {
           features:
             item.routes?.length > 1
               ? [
-                {
-                  type: "Feature",
-                  geometry: {
-                    type: "LineString",
-                    coordinates: item.routes.map((m) => [
-                      Number(m.long),
-                      Number(m.lat),
-                    ]),
+                  {
+                    type: "Feature",
+                    geometry: {
+                      type: "LineString",
+                      coordinates: item.routes.map((m) => [
+                        Number(m.long),
+                        Number(m.lat),
+                      ]),
+                    },
+                    properties: {},
                   },
-                  properties: {},
-                },
-              ]
+                ]
               : [],
         };
 
@@ -253,4 +252,4 @@ const MapComponent = ({ markerList, mode, routeData }: MapComponentProps) => {
   );
 };
 
-export default MapComponent;
+export default ViewMap;
