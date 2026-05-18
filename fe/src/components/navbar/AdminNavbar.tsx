@@ -46,12 +46,6 @@ const AdminNavbar = () => {
       iconSvg: dashboardSvg,
     },
     {
-      labelKey: "admin.lines",
-      tooltipKey: "admin.lines",
-      iconSvg: linesSvg,
-      to: appPaths.adminLines,
-    },
-    {
       labelKey: "admin.routes",
       tooltipKey: "admin.routes",
       iconSvg: routesSvg,
@@ -89,7 +83,7 @@ const AdminNavbar = () => {
         <SidebarMenu>
           {menuItems.map((item) => {
             const content = (
-              <>
+              <div className="flex gap-4 items-center" key={item.labelKey}>
                 <img
                   src={item.iconSvg}
                   alt={`${t(item.labelKey)} icon`}
@@ -105,7 +99,7 @@ const AdminNavbar = () => {
                 >
                   {t(item.labelKey)}
                 </span>
-              </>
+              </div>
             );
 
             return (

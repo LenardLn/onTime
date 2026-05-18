@@ -7,12 +7,10 @@ import { useAuthContext } from "./components/contexts/authContext";
 import AdminLayout from "./pages/admin/adminLayout";
 import DashboardPage from "./pages/admin/dashboardPage";
 import ProfilePage from "./pages/admin/profilePage";
-import LinesPage from "./pages/admin/linesPage";
 import { appPaths } from "./entities/enums/appPaths";
-import LineDetailsPage from "./pages/admin/lineDetailsPage";
 import RoutePage from "./pages/admin/routePages";
 import RouteDetailsPage from "./pages/admin/routeDetailsPage";
-import CreateRoutePage from "./pages/admin/createRoutePage";
+import ManageRoutePage from "./pages/admin/manageRoutePage";
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAuthContext();
@@ -32,7 +30,6 @@ const router = createBrowserRouter([
       { path: "login", element: <AuthPage mode="login" /> },
     ],
   },
-
   {
     path: "/admin",
     element: (
@@ -54,14 +51,6 @@ const router = createBrowserRouter([
         element: <ProfilePage />,
       },
       {
-        path: "lines",
-        element: <LinesPage />,
-      },
-      {
-        path: appPaths.adminLineDetails(":lineId"),
-        element: <LineDetailsPage />,
-      },
-      {
         path: appPaths.adminRoutes,
         element: <RoutePage />,
       },
@@ -71,7 +60,11 @@ const router = createBrowserRouter([
       },
       {
         path: appPaths.adminCreateRoute(":id"),
-        element: <CreateRoutePage />,
+        element: <ManageRoutePage />,
+      },
+      {
+        path: appPaths.adminEditRoute(":id"),
+        element: <ManageRoutePage />,
       },
     ],
   },

@@ -15,6 +15,7 @@ import { useThemeContext } from "../contexts/ThemeContextProvider";
 import type { BaseCoordinates } from "@/helpers/baseCoordinates";
 import type { RouteData } from "@/entities/route";
 import axios from "axios";
+import { BusStation } from "../station/BusStation";
 
 export const MapView = {
   VIEW: "view",
@@ -30,7 +31,7 @@ interface MapComponentProps {
   mode: MapViewMode;
 }
 
-const MapComponent = ({ markerList, mode, routeData }: MapComponentProps) => {
+const ViewMap = ({ markerList, mode, routeData }: MapComponentProps) => {
   const bounds: [[number, number], [number, number]] = [
     [23.439274, 47.617155], // SW [lng, lat]
     [23.729459, 47.686301], // NE [lng, lat]
@@ -135,7 +136,6 @@ const MapComponent = ({ markerList, mode, routeData }: MapComponentProps) => {
   function renderRoute(route: { long: number; lat: number }[]) {
     if (route.length < 1) return;
 
-    // console.log(route, "past");
     const geojson: FeatureCollection<LineString> = {
       type: "FeatureCollection",
       features: [
@@ -197,14 +197,7 @@ const MapComponent = ({ markerList, mode, routeData }: MapComponentProps) => {
       />
       {routeData?.map((route) =>
         route.stations.map((station) => (
-          <Marker
-            key={`${route.id}-${station.id}`}
-            latitude={Number(station.lat)}
-            longitude={Number(station.long)}
-            color="red"
-          >
-            <div>{station.name}</div>
-          </Marker>
+          <BusStation station={station} key={station.id} />
         )),
       )}
       {coord.map((item, i) => {
@@ -259,4 +252,4 @@ const MapComponent = ({ markerList, mode, routeData }: MapComponentProps) => {
   );
 };
 
-export default MapComponent;
+export default ViewMap;
