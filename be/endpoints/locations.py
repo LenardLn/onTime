@@ -12,7 +12,7 @@ router = APIRouter()
 async def save_location(data: LocationUpdate):
     """Process OwnTracks JSON and save to DB."""
     try:
-        topic = getattr(data, "topic", "")
+        topic = data.topic or ""
         user_id, device_id = "unknown", "unknown"
         if topic:
             parts = topic.split("/")

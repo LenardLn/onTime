@@ -8,5 +8,6 @@ class LocationUpdate(BaseModel):
     batt: Optional[int] = None
     acc: Optional[float] = None
     alt: Optional[int] = None
-    vel: Optional[float] = None  
+    vel: Optional[float] = None
+    topic: Optional[str] = None
     
