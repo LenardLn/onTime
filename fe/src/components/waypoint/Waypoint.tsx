@@ -2,7 +2,7 @@ import { Marker } from "@vis.gl/react-maplibre";
 import type { BaseCoordinates } from "@/helpers/baseCoordinates";
 import MarkerInfoCard from "../marker-info-card/MarkerInfoCard";
 import BusIcon from "@/assets/waypoint.svg";
-import { useMapEditorContext } from "../contexts/mapEditorContext";
+import { MapEditModeEnum, useMapEditorContext } from "../contexts/mapEditorContext";
 type LatLng = {
   lat: number;
   lng: number;
@@ -23,12 +23,14 @@ const Waypoint = ({
   const { mode, setMode, selectedWaypoint, setSelectedWaypoint } =
     useMapEditorContext();
 
+  const isDraggable = mode === MapEditModeEnum.Idle && draggable
+
   return (
     <Marker
       latitude={waypoint.lat}
       longitude={waypoint.long}
       color="red"
-      draggable={mode === "idle" && draggable}
+      draggable={isDraggable}
       onDragEnd={(e) => {
         if (!draggable) return;
         const { lat, lng } = e.lngLat;
@@ -41,7 +43,7 @@ const Waypoint = ({
           e.preventDefault();
           e.stopPropagation();
           setSelectedWaypoint(waypoint);
-          setMode("selected");
+          setMode(MapEditModeEnum.Selected);
         }}
       >
         <span className="absolute -translate-y-[25px] -translate-x-[5px]">
@@ -52,10 +54,10 @@ const Waypoint = ({
           className={`size-10 shrink-0 group-data-[collapsible=icon]:justify-center -translate-y-[15px]`}
         />
       </div>
-
-      {mode === "selected" &&
+      {/* {waypoint.lat} {waypoint.long} */}
+      {mode === MapEditModeEnum.Selected &&
         selectedWaypoint?.lat === waypoint.lat &&
-        selectedWaypoint.long === waypoint.long && <MarkerInfoCard />}
+        selectedWaypoint.long === waypoint.long && <MarkerInfoCard marker={waypoint} />}
     </Marker>
   );
 };

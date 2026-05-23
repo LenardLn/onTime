@@ -1,11 +1,19 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 import type { BaseCoordinates } from "@/helpers/baseCoordinates";
 
+
+
+export const MapEditModeEnum = {
+  Idle: "idle",
+  Selected: "selected",
+  InsertBefore: "insert_before",
+  InsertAfter: "insert_after",
+  Delete: "delete",
+} as const;
+
 export type MapEditMode =
-  | "idle"
-  | "selected"
-  | "insert_before"
-  | "insert_after";
+  (typeof MapEditModeEnum)[keyof typeof MapEditModeEnum];
+
 
 interface MapEditorContextType {
   mode: MapEditMode;
@@ -27,12 +35,12 @@ interface Props {
 }
 
 export const MapEditorProvider = ({ children }: Props) => {
-  const [mode, setMode] = useState<MapEditMode>("idle");
+  const [mode, setMode] = useState<MapEditMode>(MapEditModeEnum.Idle);
   const [selectedWaypoint, setSelectedWaypoint] =
     useState<BaseCoordinates | null>(null);
   const [justClosed, setJustClosed] = useState(false);
 
-  const isLocked = mode === "selected";
+  const isLocked = mode === MapEditModeEnum.Selected;
 
   return (
     <MapEditorContext.Provider
