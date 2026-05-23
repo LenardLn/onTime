@@ -55,10 +55,10 @@ const ManageMap = () => {
     const routeData = data?.response?.[0];
     if (!isEdit || !routeData) return;
 
+    initialLoadDone.current = false;
     setCoord(routeData.routes);
     setStations(routeData.stations);
     setWaypoints(routeData.waypoints);
-    initialLoadDone.current = true;
   }, [data?.response, isEdit]);
 
   const { mutateAsync: createRoute } = useCreateRoute();
