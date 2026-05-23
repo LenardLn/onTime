@@ -73,7 +73,7 @@ const ManageMap = () => {
     });
   };
 
-  const handleWaypoint = (e: MapLayerMouseEvent) => {
+  const handleInsertWaypoint = (e: MapLayerMouseEvent) => {
     const { lat, lng } = e.lngLat;
 
     if (isInsertionMode) {
@@ -367,7 +367,7 @@ const ManageMap = () => {
         </Button>
       </div>
       <BaseMap
-        handleAddMarker={isInsertionMode ? handleWaypoint : addMarker}
+        handleAddMarker={isInsertionMode ? handleInsertWaypoint : addMarker}
       >
         {waypoints.map((item) => {
           return (
