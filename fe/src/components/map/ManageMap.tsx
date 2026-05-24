@@ -67,9 +67,13 @@ const ManageMap = () => {
     coord: BaseCoordinates[],
     waypoints: BaseCoordinates[],
   ) => {
-    createRoute({
+    const routeData = {
       routes: coord,
       waypoints: waypoints,
+    }
+    createRoute({
+      lineId: id!,
+      routeData
     });
   };
 

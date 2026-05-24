@@ -1,5 +1,6 @@
 import { Button } from "@/components/shadcn/button";
 import type { Line } from "@/entities/line";
+import useDeleteRoute from "@/hooks/admin/tanstack/useDeleteRouts";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -20,6 +21,41 @@ export const useLineColumns = ({
   const navigate = useNavigate();
   const { t } = useTranslation();
 
+  const { mutateAsync: deleteRoute } = useDeleteRoute();
+
+  const renderActions = (row: Line) => {
+    return (
+      <>
+        {!row.has_route ? (
+          <Button
+            onClick={() => navigate(getCreateRoutePath(row.id))}
+          >
+            Create Route
+          </Button>
+        ) : (
+          <>
+            <Button
+              onClick={() => navigate(getEditRoutePath(row.id))}
+            >
+              Edit Route
+            </Button>
+            <Button onClick={() => navigate(getDetailPath(row.id))}>
+              View
+            </Button>
+
+            <Button
+              onClick={async () => {
+                await deleteRoute(row.id.toString());
+              }}
+            >
+              Delete Route
+            </Button>
+          </>
+        )}
+      </>
+    );
+  };
+
   return [
     {
       accessorKey: "name",
@@ -29,21 +65,12 @@ export const useLineColumns = ({
       id: "actions",
       header: t(`admin.${actionColumnName ? actionColumnName : "action"}`),
       cell: ({ row }) => {
+
+        console.log(row.original)
+
         return (
           <>
-            <Button onClick={() => navigate(getDetailPath(row.original.id))}>
-              View
-            </Button>
-            <Button
-              onClick={() => navigate(getCreateRoutePath(row.original.id))}
-            >
-              Create Route
-            </Button>
-            <Button
-              onClick={() => navigate(getEditRoutePath(row.original.id))}
-            >
-              Edit route
-            </Button>
+            {renderActions(row.original)}
           </>
         );
       },
