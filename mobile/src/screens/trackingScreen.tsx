@@ -9,17 +9,18 @@ type Props = {
   onLogout: () => void;
 };
 
-export function TrackingScreen({credentials, onLogout}: Props) {
+export const TrackingScreen = ({credentials, onLogout}: Props) => {
   const [status, setStatus] = useState('Requesting location permission…');
   const [lastSent, setLastSent] = useState<string | null>(null);
   const [trackerError, setTrackerError] = useState<string | null>(null);
   const [permissionGranted, setPermissionGranted] = useState(false);
+  const [tracking, setTracking] = useState(false);
 
   useEffect(() => {
     requestLocationPermission().then(granted => {
       if (granted) {
         setPermissionGranted(true);
-        setStatus('Waiting for GPS…');
+        setStatus('Ready. Press Start tracking.');
       } else {
         setTrackerError('Location permission denied.');
         setStatus('Cannot track without location');
@@ -28,9 +29,8 @@ export function TrackingScreen({credentials, onLogout}: Props) {
   }, []);
 
   useLocationTracker({
-    driverName: credentials.driverName,
-    busName: credentials.busName,
-    enabled: permissionGranted,
+    busId: credentials.busId,
+    enabled: permissionGranted && tracking,
     onError: message => {
       setTrackerError(message);
       setStatus('Error sending location');
@@ -41,6 +41,16 @@ export function TrackingScreen({credentials, onLogout}: Props) {
       setLastSent(new Date().toLocaleTimeString());
     },
   });
+
+  const toggleTracking = () => {
+    if (tracking) {
+      setTracking(false);
+      setStatus('Tracking stopped.');
+    } else {
+      setTracking(true);
+      setStatus('Waiting for GPS…');
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -63,7 +73,16 @@ export function TrackingScreen({credentials, onLogout}: Props) {
         </Text>
       </View>
 
-      <Pressable style={styles.button} onPress={onLogout}>
+      <Pressable
+        style={[styles.button, tracking ? styles.stopButton : styles.startButton]}
+        disabled={!permissionGranted}
+        onPress={toggleTracking}>
+        <Text style={styles.buttonText}>
+          {tracking ? 'Stop tracking' : 'Start tracking'}
+        </Text>
+      </Pressable>
+
+      <Pressable style={[styles.button, styles.logoutButton]} onPress={onLogout}>
         <Text style={styles.buttonText}>Sign out</Text>
       </Pressable>
     </View>
@@ -124,10 +143,19 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   button: {
-    backgroundColor: '#334155',
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',
+    marginBottom: 12,
+  },
+  startButton: {
+    backgroundColor: '#16a34a',
+  },
+  stopButton: {
+    backgroundColor: '#dc2626',
+  },
+  logoutButton: {
+    backgroundColor: '#334155',
   },
   buttonText: {
     color: '#f8fafc',

@@ -15,7 +15,7 @@ type Props = {
   onSuccess: (credentials: DriverCredentials) => void;
 };
 
-export function LoginScreen({onSuccess}: Props) {
+export const LoginScreen = ({onSuccess}: Props) => {
   const [driverName, setDriverName] = useState('');
   const [password, setPassword] = useState('');
   const [busName, setBusName] = useState('');
@@ -34,14 +34,16 @@ export function LoginScreen({onSuccess}: Props) {
 
     setLoading(true);
     try {
-      await loginDriver(trimmedDriver, password);
+      const bus = await loginDriver(trimmedDriver, password, trimmedBus);
       onSuccess({
         driverName: trimmedDriver,
         password,
         busName: trimmedBus,
+        busId: bus.id,
+        lineId: bus.line_id,
       });
     } catch {
-      setError('Invalid credentials. Check driver name and password.');
+      setError('Invalid credentials or unknown bus. Check your details.');
     } finally {
       setLoading(false);
     }

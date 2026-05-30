@@ -1,16 +1,14 @@
 const EARTH_RADIUS_M = 6_371_000;
 
-function toRad(deg: number): number {
-  return (deg * Math.PI) / 180;
-}
+const toRad = (deg: number): number => (deg * Math.PI) / 180;
 
 /** Haversine distance between two WGS84 points in meters. */
-export function distanceMeters(
+export const distanceMeters = (
   lat1: number,
   lon1: number,
   lat2: number,
   lon2: number,
-): number {
+): number => {
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
   const a =

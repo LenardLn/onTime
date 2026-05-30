@@ -1,19 +1,13 @@
 import {api} from './config';
 
 export type LocationPayload = {
+  bus_id: number;
   lat: number;
   lon: number;
-  tst: number;
   vel: number;
-  topic: string;
+  tst: number;
 };
 
-export async function postLocation(payload: LocationPayload): Promise<void> {
+export const postLocation = async (payload: LocationPayload): Promise<void> => {
   await api.post('/locations', payload);
-}
-
-export function buildTopic(driverName: string, busName: string): string {
-  const driver = encodeURIComponent(driverName.trim());
-  const bus = encodeURIComponent(busName.trim());
-  return `owntracks/${driver}/${bus}`;
-}
+};

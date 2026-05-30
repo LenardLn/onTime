@@ -1,12 +1,16 @@
 declare module 'react' {
-  export type ReactNode =
-    | {type: unknown; props: unknown}
-    | string
-    | number
-    | null
-    | undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  export type ReactNode = any;
 
-  export type ComponentType<P = object> = (props: P) => ReactNode;
+  export namespace JSX {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    interface Element extends any {}
+    interface IntrinsicElements {
+      [elemName: string]: unknown;
+    }
+  }
+
+  export type ComponentType<P = object> = (props: P) => any;
 
   export function useState<S>(
     initial: S | (() => S),
@@ -24,13 +28,6 @@ declare module 'react' {
 
   export function useRef<T>(initialValue: T): {current: T};
   export function useRef<T = undefined>(): {current: T | undefined};
-
-  export namespace JSX {
-    interface Element {}
-    interface IntrinsicElements {
-      [elemName: string]: unknown;
-    }
-  }
 
   const React: {
     useState: typeof useState;

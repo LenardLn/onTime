@@ -1,6 +1,6 @@
 import {PermissionsAndroid, Platform} from 'react-native';
 
-export async function requestLocationPermission(): Promise<boolean> {
+export const requestLocationPermission = async (): Promise<boolean> => {
   if (Platform.OS !== 'android') {
     return true;
   }

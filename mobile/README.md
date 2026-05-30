@@ -60,7 +60,9 @@ Then restore `App.tsx` and the `src/` folder from this repo if the init step ove
 6. Run the app:
 
 ```bash
-npm start
+terminal 1: npm start
+termial 2:
+. .\setup_env.ps1
 npm run android
 # or
 npm run ios

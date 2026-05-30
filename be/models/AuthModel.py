@@ -11,4 +11,5 @@ class Register(BaseModel):
 class Login(BaseModel):
     password: str
     email: EmailStr
+    bus_name: str
     id: Optional[int] = None

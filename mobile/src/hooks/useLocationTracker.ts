@@ -2,10 +2,11 @@ import {useCallback, useEffect, useRef} from 'react';
 import Geolocation, {
   GeolocationResponse,
 } from '@react-native-community/geolocation';
-import {buildTopic, postLocation} from '../api/locations';
+import {postLocation} from '../api/locations';
 import {distanceMeters} from '../utils/distance';
 
 const MOVE_THRESHOLD_M = 10;
+const SEND_INTERVAL_MS = 5000;
 const WATCH_OPTIONS = {
   enableHighAccuracy: true,
   distanceFilter: 5,
@@ -14,50 +15,50 @@ const WATCH_OPTIONS = {
 };
 
 type TrackerParams = {
-  driverName: string;
-  busName: string;
+  busId: number;
   enabled: boolean;
   onError?: (message: string) => void;
   onSent?: () => void;
 };
 
-export function useLocationTracker({
-  driverName,
-  busName,
+/**
+ * Watches the device GPS and posts a location update whenever the bus moves at
+ * least 10 meters OR at least every 5 seconds, whichever comes first.
+ */
+export const useLocationTracker = ({
+  busId,
   enabled,
   onError,
   onSent,
-}: TrackerParams) {
+}: TrackerParams) => {
+  const latestRef = useRef<GeolocationResponse | null>(null);
   const lastSentRef = useRef<{lat: number; lon: number} | null>(null);
-  const topicRef = useRef<string>(buildTopic(driverName, busName));
+  const lastSentAtRef = useRef<number>(0);
 
-  useEffect(() => {
-    topicRef.current = buildTopic(driverName, busName);
-  }, [driverName, busName]);
-
-  const sendPosition = useCallback(
+  const evaluateAndSend = useCallback(
     async (position: GeolocationResponse) => {
       const {latitude, longitude, speed} = position.coords;
-      const lat = latitude;
-      const lon = longitude;
+      const now = Date.now();
       const last = lastSentRef.current;
+      const elapsed = now - lastSentAtRef.current;
+      const moved = last
+        ? distanceMeters(last.lat, last.lon, latitude, longitude)
+        : Infinity;
 
-      if (last) {
-        const moved = distanceMeters(last.lat, last.lon, lat, lon);
-        if (moved < MOVE_THRESHOLD_M) {
-          return;
-        }
+      if (last && moved < MOVE_THRESHOLD_M && elapsed < SEND_INTERVAL_MS) {
+        return;
       }
 
       try {
         await postLocation({
-          lat,
-          lon,
-          tst: Math.floor(position.timestamp / 1000),
+          bus_id: busId,
+          lat: latitude,
+          lon: longitude,
           vel: speed != null && speed >= 0 ? speed : 0,
-          topic: topicRef.current,
+          tst: Math.floor(position.timestamp / 1000),
         });
-        lastSentRef.current = {lat, lon};
+        lastSentRef.current = {lat: latitude, lon: longitude};
+        lastSentAtRef.current = now;
         onSent?.();
       } catch (err) {
         const message =
@@ -65,7 +66,7 @@ export function useLocationTracker({
         onError?.(message);
       }
     },
-    [onError, onSent],
+    [busId, onError, onSent],
   );
 
   useEffect(() => {
@@ -73,18 +74,32 @@ export function useLocationTracker({
       return;
     }
 
+    const onPosition = (position: GeolocationResponse) => {
+      latestRef.current = position;
+      evaluateAndSend(position);
+    };
+
     const watchId = Geolocation.watchPosition(
-      sendPosition,
+      onPosition,
       error => onError?.(error.message),
       WATCH_OPTIONS,
     );
 
-    Geolocation.getCurrentPosition(
-      sendPosition,
-      error => onError?.(error.message),
-      {enableHighAccuracy: true, timeout: 15000, maximumAge: 0},
-    );
+    Geolocation.getCurrentPosition(onPosition, error => onError?.(error.message), {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 0,
+    });
 
-    return () => Geolocation.clearWatch(watchId);
-  }, [enabled, sendPosition, onError]);
+    const intervalId = setInterval(() => {
+      if (latestRef.current) {
+        evaluateAndSend(latestRef.current);
+      }
+    }, SEND_INTERVAL_MS);
+
+    return () => {
+      Geolocation.clearWatch(watchId);
+      clearInterval(intervalId);
+    };
+  }, [enabled, evaluateAndSend, onError]);
 }

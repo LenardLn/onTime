@@ -11,9 +11,18 @@ npm-debug.log*
 web-build/
 .metro-health-check*
 android/app/build/
+android/build/
 android/.gradle/
+android/.kotlin/
+android/local.properties
 ios/build/
 ios/Pods/
+
+# Native build intermediates (C++/CMake) - the bulk of generated files
+.cxx/
+*.iml
+*.hprof
+
 .DS_Store
 .env
 .env.local

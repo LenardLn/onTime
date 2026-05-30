@@ -3,7 +3,7 @@
     "target": "esnext",
     "module": "esnext",
     "lib": ["es2022"],
-    "jsx": "react-native",
+    "jsx": "react-jsx",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "allowJs": true,
@@ -13,9 +13,8 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
+      "@/*": ["./src/*"],
       "react": ["./types/react.d.ts"],
       "react-native": ["./types/react-native.d.ts"],
       "@react-native-community/geolocation": ["./types/geolocation.d.ts"]
