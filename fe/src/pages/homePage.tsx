@@ -4,7 +4,11 @@ import "../css/HomePage.css";
 
 const HomePage = () => {
   const { theme } = useThemeContext();
-  return <ViewMap mode={"view"} />;
+  return (
+    <div className="h-screen">
+      <ViewMap mode={"view"} />
+    </div>
+  );
 };
 
 export default HomePage;

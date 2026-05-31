@@ -125,3 +125,21 @@ class StationNotFoundError(AppError):
             error_code=Errors.STATION_NOT_FOUND,
             status_code=404
         )
+
+
+class BusNotFoundError(AppError):
+    def __init__(self):
+        super().__init__(
+            message="Bus not found",
+            error_code="errors.bus_not_found",
+            status_code=404
+        )
+
+
+class NotADriverError(AppError):
+    def __init__(self):
+        super().__init__(
+            message="Account is not a driver",
+            error_code="errors.not_a_driver",
+            status_code=403
+        )
