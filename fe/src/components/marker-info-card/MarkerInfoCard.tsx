@@ -58,7 +58,6 @@ const MarkerInfoCard = ({ name, marker }: MarkerInfoCardProps) => {
           e.stopPropagation();
           if (!marker) return
 
-          console.log(marker);
           setSelectedWaypoint(marker)
           setMode(MapEditModeEnum.Delete);
         }}

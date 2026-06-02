@@ -65,9 +65,6 @@ export const useLineColumns = ({
       id: "actions",
       header: t(`admin.${actionColumnName ? actionColumnName : "action"}`),
       cell: ({ row }) => {
-
-        console.log(row.original)
-
         return (
           <>
             {renderActions(row.original)}
