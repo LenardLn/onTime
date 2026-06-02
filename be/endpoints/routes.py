@@ -197,10 +197,9 @@ async def delete_route_by_line(
     deleted_count = db.query(RouteDB).filter(
         RouteDB.line_id == line_id).delete(synchronize_session=False)
 
-    # if deleted_count == 0:
-    #     raise RouteNotFoundError()
-    
-    print("================================", line_id)
+    if deleted_count == 0:
+        raise RouteNotFoundError()
+
 
     db.query(LineDB).filter(
             LineDB.id == line_id).update({"has_route": False})
