@@ -6,7 +6,6 @@ import {
 } from "@vis.gl/react-maplibre";
 import type { FeatureCollection, LineString } from "geojson";
 import "maplibre-gl/dist/maplibre-gl.css";
-import Markers from "../markers/Markers";
 import type { BaseCoordinates } from "@/helpers/baseCoordinates";
 import { useEffect, useMemo, useRef, useState } from "react";
 import useCreateRoute from "@/hooks/admin/tanstack/useCreateRoute";
@@ -18,7 +17,7 @@ import type { RouteUpdateType, Station } from "@/entities/route";
 import { BusStation } from "../station/BusStation";
 import { Waypoint } from "../waypoint/Waypoint";
 import BaseMap from "./BaseMap";
-import { useMapEditorContext } from "../contexts/mapEditorContext";
+import { MapEditModeEnum, useMapEditorContext } from "../contexts/mapEditorContext";
 
 const ManageMap = () => {
   const location = useLocation();
@@ -26,10 +25,9 @@ const ManageMap = () => {
 
   const [waypoints, setWaypoints] = useState<BaseCoordinates[]>([]);
   const [coord, setCoord] = useState<BaseCoordinates[]>([]);
-  const [selectedMarker, setSelectedMarker] = useState<BaseCoordinates[]>([]);
   const [stations, setStations] = useState<Station[]>([]);
 
-  const { justClosed, setJustClosed, mode, setMode, selectedWaypoint } =
+  const { justClosed, setJustClosed, mode, setMode, selectedWaypoint, setSelectedWaypoint } =
     useMapEditorContext();
 
   const routeUpdateTypeRef = useRef<RouteUpdateType>("append");
@@ -42,7 +40,9 @@ const ManageMap = () => {
 
   const isEdit = useMemo(() => location.pathname.includes("/edit"), []);
 
-  const isInsertionMode = mode === "insert_after" || mode === "insert_before";
+  const isInsertionMode = mode === MapEditModeEnum.InsertBefore || mode === MapEditModeEnum.InsertAfter;
+  const isDeleteNode = mode === MapEditModeEnum.Delete
+
 
   const {
     data,
@@ -67,9 +67,13 @@ const ManageMap = () => {
     coord: BaseCoordinates[],
     waypoints: BaseCoordinates[],
   ) => {
-    createRoute({
+    const routeData = {
       routes: coord,
       waypoints: waypoints,
+    }
+    createRoute({
+      lineId: id!,
+      routeData
     });
   };
 
@@ -86,7 +90,7 @@ const ManageMap = () => {
       if (selectedIndex === -1) return;
 
       const insertIndex =
-        mode === "insert_before" ? selectedIndex : selectedIndex + 1;
+        mode === MapEditModeEnum.InsertBefore ? selectedIndex : selectedIndex + 1;
 
       const newMarker = {
         lat,
@@ -104,12 +108,12 @@ const ManageMap = () => {
           order_index: i,
         }));
       });
-      setMode("idle");
+      setMode(MapEditModeEnum.Idle);
       return;
     }
 
-    if (mode !== "idle") {
-      setMode("idle");
+    if (mode !== MapEditModeEnum.Idle) {
+      setMode(MapEditModeEnum.Idle);
       return;
     }
 
@@ -122,7 +126,7 @@ const ManageMap = () => {
       return;
     }
 
-    if (isInsertionMode) setMode("idle");
+    if (isInsertionMode) setMode(MapEditModeEnum.Idle);
 
     setUpdate("append");
 
@@ -138,42 +142,6 @@ const ManageMap = () => {
     setWaypoints((prev) => [...prev, newMarker]);
   };
 
-  const handleOpenedMarkers = async (
-    e: MarkerEvent<MouseEvent>,
-    marker: BaseCoordinates,
-  ) => {
-    e.originalEvent.stopPropagation();
-    setSelectedMarker((prev) => {
-      const exists = prev.some(
-        (m) => m.lat === marker.lat && m.long === marker.long,
-      );
-      if (exists) {
-        return prev.filter(
-          (m) => m.lat !== marker.lat || m.long !== marker.long,
-        );
-      }
-      return [...prev, marker];
-    });
-  };
-
-  const handleMarkerDragEnd = async (
-    oldMarker: BaseCoordinates,
-    newCoords: { lat: number; lng: number },
-  ) => {
-    setUpdate("move");
-    setWaypoints((prev) =>
-      prev.map((m) =>
-        m.lat === oldMarker.lat && m.long === oldMarker.long
-          ? {
-              lat: newCoords.lat,
-              long: newCoords.lng,
-              order_index: m.order_index,
-              line_id: Number(id!),
-            }
-          : m,
-      ),
-    );
-  };
 
   // more optimised geoapify stuff
 
@@ -244,9 +212,9 @@ const ManageMap = () => {
     const coordinates =
       updateType === "append"
         ? waypoints
-            .slice(-2)
-            .map((c) => `${c.lat},${c.long}`)
-            .join("|")
+          .slice(-2)
+          .map((c) => `${c.lat},${c.long}`)
+          .join("|")
         : waypoints.map((c) => `${c.lat},${c.long}`).join("|");
 
     const response = await axios.get(
@@ -279,10 +247,13 @@ const ManageMap = () => {
 
   useEffect(() => {
     if (waypoints.length < 2) return;
-    if (!initialLoadDone.current) {
-      initialLoadDone.current = true;
-      return;
-    }
+
+    // this prevents connection of the first 2 waypoints when creating a map
+    // if (!initialLoadDone.current) {
+    //   initialLoadDone.current = true;
+    //   return;
+    // }
+
 
     const timeout = setTimeout(() => {
       drawBusRoute();
@@ -356,6 +327,39 @@ const ManageMap = () => {
     );
   };
 
+  const handleDeleteWaypoint = (selectedWaypoint: BaseCoordinates) => {
+    setWaypoints((prev) => {
+
+      const remainingWaypoints = prev.filter(
+        (waypoint) =>
+          !(
+            waypoint.lat === selectedWaypoint?.lat &&
+            waypoint.long === selectedWaypoint?.long
+          )
+      );
+
+      const reorderedWaypoints = remainingWaypoints.map((waypoint) => ({
+        ...waypoint,
+        order_index:
+          waypoint.order_index > selectedWaypoint.order_index // if current waypoint higher the deleted one, subtract 1 from order
+            ? waypoint.order_index - 1
+            : waypoint.order_index,
+      }));
+      return reorderedWaypoints
+    });
+
+    setSelectedWaypoint(null)
+    setMode(MapEditModeEnum.Idle)
+    setUpdate("full")
+  }
+
+  useEffect(() => {
+    if (isDeleteNode && selectedWaypoint) {
+      handleDeleteWaypoint(selectedWaypoint)
+    }
+  }, [mode])
+
+
   return (
     <>
       <div className="flex absolute z-20 p-2.5">
@@ -369,12 +373,6 @@ const ManageMap = () => {
       <BaseMap
         handleAddMarker={isInsertionMode ? handleInsertWaypoint : addMarker}
       >
-        <Markers
-          markers={waypoints}
-          handleMarkers={handleOpenedMarkers}
-          selectedMarkers={selectedMarker}
-          onDragEnd={handleMarkerDragEnd}
-        />
         {waypoints.map((item) => {
           return (
             <Waypoint

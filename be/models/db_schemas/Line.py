@@ -13,6 +13,8 @@ class Line(Base):
 
     name: Mapped[str] = mapped_column(String, nullable=False)
 
+    has_route: Mapped[bool] = mapped_column(default=False, nullable=False)
+
     routes: Mapped[list[Route]] = relationship(
         "Route",
         back_populates="line",

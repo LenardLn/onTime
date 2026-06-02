@@ -7,6 +7,7 @@ const adminApi = {
   GET_LINE_DETAILS: (id: string) => `/line/${id}`,
   GET_STATION_DETAILS: (id: string) => `/station/${id}`,
   ROUTE: "/route",
+  ROUTE_ID: (id: string) => `/route/${id}`,
 } as const;
 
 const urls = {
@@ -44,6 +45,10 @@ export const createLine = async (line_name: string) => {
   return await request("post", adminApi.LINE, { name: line_name }, true);
 };
 
-export const createRoute = async (routeData: any) => {
-  return await request("post", adminApi.ROUTE, routeData, true);
+export const createRoute = async ({ lineId, routeData }: { lineId: string; routeData: any }) => {
+  return await request("post", adminApi.ROUTE_ID(lineId), routeData, true);
+};
+
+export const deleteRoute = async (id: string) => {
+  return await request("delete", adminApi.ROUTE_ID(id), undefined, true);
 };

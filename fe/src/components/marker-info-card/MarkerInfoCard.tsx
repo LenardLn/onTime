@@ -1,19 +1,21 @@
 import { useEffect, useRef } from "react";
-import { useMapEditorContext } from "../contexts/mapEditorContext";
+import { MapEditModeEnum, useMapEditorContext } from "../contexts/mapEditorContext";
 import { Button } from "../shadcn/button";
+import type { BaseCoordinates } from "@/helpers/baseCoordinates";
 
 interface MarkerInfoCardProps {
   name?: string;
+  marker?: BaseCoordinates
 }
 
-const MarkerInfoCard = ({ name }: MarkerInfoCardProps) => {
-  const { setMode, setJustClosed } = useMapEditorContext();
+const MarkerInfoCard = ({ name, marker }: MarkerInfoCardProps) => {
+  const { setMode, setJustClosed, setSelectedWaypoint } = useMapEditorContext();
 
   const cardRef = useRef<HTMLDivElement>(null);
 
   const handleClickOutside = (event: MouseEvent) => {
     if (cardRef.current && !cardRef.current.contains(event.target as Node)) {
-      setMode("idle");
+      setMode(MapEditModeEnum.Idle);
       setJustClosed(true);
     }
   };
@@ -34,7 +36,7 @@ const MarkerInfoCard = ({ name }: MarkerInfoCardProps) => {
       <Button
         onClick={(e) => {
           e.stopPropagation();
-          setMode("insert_before");
+          setMode(MapEditModeEnum.InsertBefore);
         }}
         variant={"ghost"}
       >
@@ -44,11 +46,24 @@ const MarkerInfoCard = ({ name }: MarkerInfoCardProps) => {
       <Button
         onClick={(e) => {
           e.stopPropagation();
-          setMode("insert_after");
+          setMode(MapEditModeEnum.InsertAfter);
         }}
         variant={"ghost"}
       >
         Insert After
+      </Button>
+
+      <Button
+        onClick={(e) => {
+          e.stopPropagation();
+          if (!marker) return
+
+          setSelectedWaypoint(marker)
+          setMode(MapEditModeEnum.Delete);
+        }}
+        variant={"ghost"}
+      >
+        Delete
       </Button>
     </div>
   );

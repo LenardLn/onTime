@@ -46,3 +46,4 @@ class RouteCreatePayload(BaseModel):
 
 class CreateRouteResponse(BaseModel):
     message: str
+    line_id: int
