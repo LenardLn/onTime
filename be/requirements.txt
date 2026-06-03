@@ -9,3 +9,4 @@ argon2-cffi
 python-multipart
 python-dotenv
 pydantic[email]
+geopy
