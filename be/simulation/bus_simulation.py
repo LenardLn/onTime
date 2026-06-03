@@ -11,9 +11,9 @@ from simulation.route_loader import load_route, load_stations
 from simulation.station_logic import is_near_station
 from models.db_schemas.Bus import Bus
 
-def passenger_probability(simulation_time):
+def passenger_probability(time):
 
-    current_hour = simulation_time.hour
+    current_hour = time.hour
     if 6 <= current_hour < 8:
         return 1.00
     elif 8 <= current_hour < 12:
@@ -68,7 +68,7 @@ for line_id in line_ids:
                     0.8,
                     1.2
                 ),
-                "simulation_time": datetime.now(), # datetime(2026,6,1,6,0,0),
+                "time": datetime.now(), # datetime(2026,6,1,6,0,0),
                 "position": (
                     waypoints[start_index].lat,
                     waypoints[start_index].long
@@ -117,7 +117,7 @@ while any(bus['completed_routes'] < 3 for bus in buses):
             if bus['current_speed'] < 5:
                 red_light_time = random.randint(15,60)
                 print(f"Red light. Waiting {red_light_time} seconds...")
-                bus['simulation_time'] += timedelta(seconds=red_light_time)
+                bus['time'] += timedelta(seconds=red_light_time)
                 time.sleep(red_light_time / 5)
         
         location = BusLocation(
@@ -127,7 +127,7 @@ while any(bus['completed_routes'] < 3 for bus in buses):
             lat=bus['position'][0],
             lon=bus['position'][1],
             vel=speed,
-            simulation_time=bus['simulation_time']
+            time=bus['time']
         )
 
         db.add(location)
@@ -136,7 +136,7 @@ while any(bus['completed_routes'] < 3 for bus in buses):
         print(
             f"Line: {bus['line_id']} | "
             f"Bus: {bus['bus_name']} |"
-            f"SimTime: {bus['simulation_time'].strftime('%H:%M:%S')} | "
+            f"SimTime: {bus['time'].strftime('%H:%M:%S')} | "
             f"Speed: {round(speed,1)} km/h | "
             f"Arrived: {arrived}"
         )
@@ -162,7 +162,7 @@ while any(bus['completed_routes'] < 3 for bus in buses):
                 )
 
                 has_passenger = (
-                    random.random() < passenger_probability(bus['simulation_time'])
+                    random.random() < passenger_probability(bus['time'])
                 )
                 
                 if has_passenger:
@@ -170,7 +170,7 @@ while any(bus['completed_routes'] < 3 for bus in buses):
                     wait_time = random.randint(5,15)
                     print(f"Station reached: {station.name}")
                     print(f"Waiting {wait_time} seconds...")
-                    bus['simulation_time'] += timedelta(seconds=wait_time)
+                    bus['time'] += timedelta(seconds=wait_time)
                     time.sleep(wait_time / 5)
                     
                 else:
@@ -224,7 +224,7 @@ while any(bus['completed_routes'] < 3 for bus in buses):
                     1.2
                 )
                 
-        bus['simulation_time'] += timedelta(
+        bus['time'] += timedelta(
             seconds=5
         )
 
