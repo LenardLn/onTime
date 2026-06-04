@@ -9,3 +9,4 @@ class LineCreate(BaseModel):
 class LineModel(BaseModel):
     id: Optional[int] = None
     name: str
+    has_route: bool

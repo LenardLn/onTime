@@ -1,59 +1,51 @@
-from fastapi import APIRouter
-from db import engine
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from db import get_db
 from models.LocationModel import LocationUpdate
+from models.db_schemas.Bus import Bus
+from models.db_schemas.BusLocation import BusLocation
+from models.errors.Errors import BusNotFoundError
 from datetime import datetime
 import pytz
-from helpers import logger
 
 router = APIRouter()
 
 
 @router.post("/locations")
-async def save_location(data: LocationUpdate):
-    """Process OwnTracks JSON and save to DB."""
-    try:
-        topic = getattr(data, "topic", "")
-        user_id, device_id = "unknown", "unknown"
-        if topic:
-            parts = topic.split("/")
-            if len(parts) >= 3:
-                user_id = parts[1]
-                device_id = parts[2]
+async def save_location(data: LocationUpdate, db: Session = Depends(get_db)):
+    """Receive a GPS update from the driver app and store it in bus_locations."""
+    bus = db.query(Bus).filter(Bus.id == data.bus_id).first()
+    if not bus:
+        raise BusNotFoundError()
 
-        tst_local = None
-        if data.tst:
-            utc_dt = datetime.utcfromtimestamp(
-                data.tst).replace(tzinfo=pytz.utc)
-            local_tz = pytz.timezone("Europe/Bucharest")
-            tst_local = utc_dt.astimezone(local_tz).replace(tzinfo=None)
+    utc_dt = datetime.utcfromtimestamp(data.tst).replace(tzinfo=pytz.utc)
+    local_tz = pytz.timezone("Europe/Bucharest")
+    local_time = utc_dt.astimezone(local_tz).replace(tzinfo=None)
 
-        processed = {
-            "user_id": user_id,
-            "device_id": device_id,
-            "lat": data.lat,
-            "lon": data.lon,
-            "tst": tst_local,
-            "batt": data.batt,
-            "acc": data.acc,
-            "alt": data.alt,
-            "speed": data.vel
-        }
+    location = BusLocation(
+        line_id=bus.line_id,
+        lat=data.lat,
+        lon=data.lon,
+        vel=data.vel if data.vel is not None else 0,
+        time=local_time,
+        bus_id=bus.id,
+        bus_name=bus.name,
+    )
 
-        with engine.connect() as conn:
-            conn.execute(
-                """
-                INSERT INTO locations (
-                    user_id, device_id, lat, lon, tst, batt, acc, alt, speed
-                ) VALUES (
-                    :user_id, :device_id, :lat, :lon, :tst, :batt, :acc, :alt, :speed
-                )
-                """,
-                processed
-            )
-            conn.commit()
+    db.add(location)
+    db.commit()
+    db.refresh(location)
 
-        return {"status": "ok", "data": processed}\
-
-    except Exception as e:
-        logger.error(f"Error saving location: {e}")
-        return {"status": "error", "message": str(e)}
+    return {
+        "status": "ok",
+        "data": {
+            "id": location.id,
+            "bus_id": location.bus_id,
+            "bus_name": location.bus_name,
+            "line_id": location.line_id,
+            "lat": location.lat,
+            "lon": location.lon,
+            "vel": location.vel,
+            "time": str(location.time),
+        },
+    }

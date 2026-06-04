@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "lib": ["es2022"],
+    "jsx": "react-jsx",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "paths": {
+      "@/*": ["./src/*"],
+      "react": ["./types/react.d.ts"],
+      "react-native": ["./types/react-native.d.ts"],
+      "@react-native-community/geolocation": ["./types/geolocation.d.ts"]
+    }
+  },
+  "include": ["src/**/*", "App.tsx", "index.js", "types/**/*.d.ts"],
+  "exclude": ["node_modules"]
+}

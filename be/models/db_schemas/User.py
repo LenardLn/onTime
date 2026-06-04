@@ -11,3 +11,4 @@ class User(Base):
     password: Mapped[str] = mapped_column(String, nullable=False)
     created_at: Mapped[datetime] = mapped_column(Date, nullable=False)
     token_version: Mapped[int] = mapped_column(Integer, default=0)
+    roles: Mapped[str] = mapped_column(String, nullable=False)

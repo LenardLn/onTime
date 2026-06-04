@@ -91,8 +91,8 @@ async def get_routes(
     }
 
 
-@router.post("", response_model=CreateRouteResponse)
-async def create_route(data: RouteCreatePayload, db: Session = Depends(get_db), user=Depends(get_current_user)):
+@router.post("/{line_id}", response_model=CreateRouteResponse)
+async def create_route(line_id: int, data: RouteCreatePayload, db: Session = Depends(get_db), user=Depends(get_current_user)):
     now = datetime.now(timezone.utc)
 
     route_rows = [
@@ -120,6 +120,8 @@ async def create_route(data: RouteCreatePayload, db: Session = Depends(get_db), 
     ]
 
     try:
+        db.query(LineDB).filter(
+            LineDB.id == line_id).update({"has_route": True})
         db.add_all(route_rows)
         db.add_all(waypoint_rows)
         db.commit()
@@ -127,7 +129,7 @@ async def create_route(data: RouteCreatePayload, db: Session = Depends(get_db), 
         db.rollback()
         raise
 
-    return {"message": "Routes and waypoints created successfully"}
+    return {"message": "Routes and waypoints created successfully", "line_id": line_id}
 
 # return {
 #     "routes": [{
@@ -186,7 +188,7 @@ async def update_route(
     }
 
 
-@router.delete("/line/{line_id}")
+@router.delete("/{line_id}")
 async def delete_route_by_line(
     line_id: int,
     db: Session = Depends(get_db),
@@ -197,6 +199,10 @@ async def delete_route_by_line(
 
     if deleted_count == 0:
         raise RouteNotFoundError()
+
+
+    db.query(LineDB).filter(
+            LineDB.id == line_id).update({"has_route": False})
 
     db.commit()
 

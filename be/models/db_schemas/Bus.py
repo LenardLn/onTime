@@ -1,14 +1,18 @@
-from sqlalchemy import Column, Integer, Text, ForeignKey
+from sqlalchemy import Integer, String, SmallInteger, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column
+
 from models.db_schemas.Base import Base
+
 
 class Bus(Base):
     __tablename__ = "buses"
 
-    id = Column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
 
-    name = Column(Text, unique=True)
+    name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
 
-    line_id = Column(
-        Integer,
-        ForeignKey("lines.id")
+    line_id: Mapped[int] = mapped_column(
+        SmallInteger,
+        ForeignKey("lines.id"),
+        nullable=False
     )
