@@ -11,9 +11,22 @@ router = APIRouter(
     tags=["Simulation"]
 )
 
+# Track the running simulation so we never have two runs writing conflicting
+# positions for the same bus ids (which makes the live view jump back/forward).
+_sim_process: subprocess.Popen | None = None
+
 
 @router.post("/start")
 def start_simulation():
+    global _sim_process
+
+    # Stop any simulation that is still running before starting a fresh one.
+    if _sim_process is not None and _sim_process.poll() is None:
+        _sim_process.terminate()
+        try:
+            _sim_process.wait(timeout=5)
+        except Exception:
+            _sim_process.kill()
 
     simulation_path = (
         Path(__file__)
@@ -23,15 +36,35 @@ def start_simulation():
         / "bus_simulation.py"
     )
 
-    subprocess.Popen(
+    _sim_process = subprocess.Popen(
         [
             sys.executable,
             str(simulation_path)
-        ]
+        ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
     )
 
     return {
         "message": "Simulation started"
+    }
+
+
+@router.post("/stop")
+def stop_simulation():
+    global _sim_process
+
+    if _sim_process is not None and _sim_process.poll() is None:
+        _sim_process.terminate()
+        try:
+            _sim_process.wait(timeout=5)
+        except Exception:
+            _sim_process.kill()
+
+    _sim_process = None
+
+    return {
+        "message": "Simulation stopped"
     }
     
 @router.get("/live")
@@ -57,7 +90,7 @@ def get_live_buses(
         WHERE line_id = :line_id
         ORDER BY
             bus_id,
-            time DESC
+            id DESC
         """
 
         result = db.execute(
@@ -81,7 +114,7 @@ def get_live_buses(
         FROM bus_locations
         ORDER BY
             bus_id,
-            time DESC
+            id DESC
         """
 
         result = db.execute(

@@ -14,8 +14,17 @@ ALGORITHM = "HS256"
 router = APIRouter()
 
 
+def _extract_token(request: Request) -> str | None:
+    """Token may arrive as an `Authorization: Bearer <token>` header (native
+    apps) or as the `access_token` cookie (browser admin panel)."""
+    auth_header = request.headers.get("authorization")
+    if auth_header and auth_header.lower().startswith("bearer "):
+        return auth_header[7:].strip()
+    return request.cookies.get("access_token")
+
+
 def get_current_user(request: Request, db: Session = Depends(get_db)):
-    token = request.cookies.get("access_token")
+    token = _extract_token(request)
 
     if not token:
         raise InvalidTokenError()

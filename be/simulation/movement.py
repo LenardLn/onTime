@@ -1,4 +1,4 @@
-from geopy.distance import geodesic
+from simulation.geo import distance_m
 
 
 """
@@ -32,10 +32,7 @@ def move_toward(
         meters_per_second * seconds
     )
 
-    total_distance = geodesic(
-        current,
-        target
-    ).meters
+    total_distance = distance_m(current, target)
 
     if total_distance <= distance_can_move:
         return target, True

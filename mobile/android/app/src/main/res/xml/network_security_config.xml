@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Block plaintext HTTP by default (production talks to the Render backend over
+  HTTPS). Cleartext is allowed only for local development hosts so the emulator
+  / a USB-reversed PC backend still work. If you test against a LAN PC backend
+  ('wifi' mode in src/api/config.ts), add that IP as another <domain> here.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain>
+    </domain-config>
+</network-security-config>

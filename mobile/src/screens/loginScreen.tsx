@@ -34,13 +34,13 @@ export const LoginScreen = ({onSuccess}: Props) => {
 
     setLoading(true);
     try {
-      const bus = await loginDriver(trimmedDriver, password, trimmedBus);
+      const {bus, token} = await loginDriver(trimmedDriver, password, trimmedBus);
       onSuccess({
         driverName: trimmedDriver,
-        password,
         busName: trimmedBus,
         busId: bus.id,
         lineId: bus.line_id,
+        token,
       });
     } catch {
       setError('Invalid credentials or unknown bus. Check your details.');

@@ -1,4 +1,4 @@
-from geopy.distance import geodesic
+from simulation.geo import distance_m
 
 
 def is_near_station(
@@ -11,12 +11,12 @@ def is_near_station(
     station = Station object
     """
 
-    distance = geodesic(
+    distance = distance_m(
         bus_position,
         (
             station.lat,
             station.long
         )
-    ).meters
+    )
 
     return distance <= threshold_meters

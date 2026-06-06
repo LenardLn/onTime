@@ -5,6 +5,7 @@ from models.LocationModel import LocationUpdate
 from models.db_schemas.Bus import Bus
 from models.db_schemas.BusLocation import BusLocation
 from models.errors.Errors import BusNotFoundError
+from helpers.get_current_user import get_current_user
 from datetime import datetime
 import pytz
 
@@ -12,8 +13,15 @@ router = APIRouter()
 
 
 @router.post("/locations")
-async def save_location(data: LocationUpdate, db: Session = Depends(get_db)):
-    """Receive a GPS update from the driver app and store it in bus_locations."""
+async def save_location(
+    data: LocationUpdate,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    """Receive a GPS update from the driver app and store it in bus_locations.
+
+    Requires a valid driver token (Bearer header from the app), so anonymous
+    clients can no longer inject fake positions."""
     bus = db.query(Bus).filter(Bus.id == data.bus_id).first()
     if not bus:
         raise BusNotFoundError()

@@ -1,10 +1,18 @@
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
+
+# Romanian station names (ă, ț, ș) would crash print() on a non-UTF-8 console.
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
 import time
 from datetime import datetime, timedelta
 from db import SessionLocal
 from simulation.movement import move_toward
+from simulation.geo import distance_m
 from models.db_schemas.BusLocation import BusLocation
 import random
 from simulation.route_loader import load_route, load_stations
@@ -48,7 +56,7 @@ for line_id in line_ids:
 
     for bus_record, start_index in zip(db_buses, [0, 25, 50, 75, 100]):
 
-        if start_index >= len(waypoints):
+        if start_index >= len(waypoints) - 1:
             continue
 
         buses.append(
@@ -62,7 +70,7 @@ for line_id in line_ids:
                     line_id
                 ),
                 "current_index": start_index,
-                "current_speed": 0,
+                "current_speed": 25,
                 "visited_stations": set(),
                 "traffic_factor": random.uniform(
                     0.8,
@@ -82,7 +90,7 @@ while any(bus['completed_routes'] < 3 for bus in buses):
         if bus['completed_routes'] >= 3:
                     continue
         if bus['current_speed'] < 40:
-            bus['current_speed'] += random.uniform(1,3)
+            bus['current_speed'] += random.uniform(3,6)
         else:
             bus['current_speed'] += random.uniform(-2,2)
                 
@@ -96,19 +104,53 @@ while any(bus['completed_routes'] < 3 for bus in buses):
             bus['current_speed'] * bus['traffic_factor']
         )
         
-        target = (
-            bus['waypoints'][bus['current_index']+1].lat,
-            bus['waypoints'][bus['current_index']+1].long
-        )
+        # Advance along the route by the full distance the bus can cover this
+        # 10-second step, crossing as many of the dense (~40 m) waypoints as the
+        # current speed allows. This way faster speed = more ground covered,
+        # instead of being capped at one waypoint per step.
+        budget_m = (speed / 3.6) * 10
+        arrived = False
 
-        new_position, arrived = move_toward(
-            bus['position'],
-            target,
-            speed,
-            5
-        )
-        
-        bus['position']=new_position
+        while budget_m > 0:
+            next_index = bus['current_index'] + 1
+            target = (
+                bus['waypoints'][next_index].lat,
+                bus['waypoints'][next_index].long
+            )
+            seg = distance_m(bus['position'], target)
+
+            if seg > budget_m:
+                # Partial move toward the next waypoint; budget used up.
+                ratio = budget_m / seg
+                bus['position'] = (
+                    bus['position'][0] + (target[0] - bus['position'][0]) * ratio,
+                    bus['position'][1] + (target[1] - bus['position'][1]) * ratio,
+                )
+                break
+
+            # Reached the next waypoint; keep going with the remaining budget.
+            bus['position'] = target
+            budget_m -= seg
+            bus['current_index'] = next_index
+            arrived = True
+
+            if bus['current_index'] >= len(bus['waypoints']) - 1:
+                bus['completed_routes'] += 1
+                print(
+                    f"Bus {bus['bus_name']} completed "
+                    f"{bus['completed_routes']}/3 routes"
+                )
+                if bus['completed_routes'] >= 3:
+                    break
+                # Restart the route from the beginning.
+                bus['current_index'] = 0
+                bus['position'] = (
+                    bus['waypoints'][0].lat,
+                    bus['waypoints'][0].long
+                )
+                bus['visited_stations'].clear()
+                bus['traffic_factor'] = random.uniform(0.8, 1.2)
+                break
 
         if random.random() < 0.05:
             print("Approaching red light...")
@@ -118,7 +160,6 @@ while any(bus['completed_routes'] < 3 for bus in buses):
                 red_light_time = random.randint(15,60)
                 print(f"Red light. Waiting {red_light_time} seconds...")
                 bus['time'] += timedelta(seconds=red_light_time)
-                time.sleep(red_light_time / 5)
         
         location = BusLocation(
             bus_id=bus['bus_id'],
@@ -131,8 +172,7 @@ while any(bus['completed_routes'] < 3 for bus in buses):
         )
 
         db.add(location)
-        db.commit()
-        
+
         print(
             f"Line: {bus['line_id']} | "
             f"Bus: {bus['bus_name']} |"
@@ -171,61 +211,14 @@ while any(bus['completed_routes'] < 3 for bus in buses):
                     print(f"Station reached: {station.name}")
                     print(f"Waiting {wait_time} seconds...")
                     bus['time'] += timedelta(seconds=wait_time)
-                    time.sleep(wait_time / 5)
                     
                 else:
                     print(f"Station skipped: {station.name}")
-            
-        
-    # Multiple coordinates can be generated for a single route point.
-    # When the next point is too far away, the bus moves towards it in
-    # several simulation steps (arrived=False) until the point is reached
-    # (arrived=True).
 
-        
-        if arrived:
-            bus['current_index'] += 1
-            print(
-                f"Waypoint {bus['current_index']} reached"
-            )
-            
-            if bus['current_index'] >= len(bus['waypoints'])-1:
-                bus['completed_routes'] += 1
-                print(
-                    f"Line {bus['line_id']} "
-                    f"Bus {bus['bus_name']} "
-                    f"Completed routes: {bus['completed_routes']}"
-                )
-                print(
-                    f"Bus {bus['bus_name']} completed "
-                    f"{bus['completed_routes']}/3 routes"
-                )
-
-                if bus['completed_routes'] >= 3:
-                    print(
-                        f"Bus {bus['bus_name']} finished all routes."
-                    )
-                    continue
-                
-
-                bus['current_index'] = 0
-
-                bus['position'] = (
-                    bus['waypoints'][0].lat,
-                    bus['waypoints'][0].long
-                )
-
-                bus['visited_stations'].clear()
-
-                bus['current_speed'] = 0
-                
-                bus['traffic_factor'] = random.uniform(
-                    0.8,
-                    1.2
-                )
-                
         bus['time'] += timedelta(
-            seconds=5
+            seconds=10
         )
 
-    time.sleep(1)
+    db.commit()
+    # Write each bus's position once every 5 real seconds, like the phone app.
+    time.sleep(5)

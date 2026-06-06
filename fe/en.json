@@ -3,6 +3,18 @@
     "home": "Home",
     "login": "Login"
   },
+  "home": {
+    "selectLine": "Select line",
+    "linePlaceholder": "— Choose a line —",
+    "startSimulation": "Start simulation",
+    "starting": "Starting…",
+    "simulationStarted": "Simulation started",
+    "stopSimulation": "Stop simulation",
+    "stopping": "Stopping…",
+    "simulationStopped": "Simulation stopped",
+    "select": "Select",
+    "myLocation": "My location"
+  },
   "registerPage": {
     "register": "Register",
     "email": "Email",

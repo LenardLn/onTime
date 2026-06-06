@@ -22,7 +22,7 @@ class BusLocation(Base):
     lon: Mapped[float] = mapped_column(Float, nullable=False)
     vel: Mapped[float] = mapped_column(Float, nullable=False)
 
-    time: Mapped[datetime] = mapped_column("simulation_time", DateTime, nullable=False)
+    time: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
     bus_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 

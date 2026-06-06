@@ -7,6 +7,7 @@ npm-debug.log*
 *.p12
 *.key
 *.mobileprovision
+android/keystore.properties
 *.orig.*
 web-build/
 .metro-health-check*

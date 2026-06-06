@@ -143,3 +143,12 @@ class NotADriverError(AppError):
             error_code="errors.not_a_driver",
             status_code=403
         )
+
+
+class TooManyRequestsError(AppError):
+    def __init__(self):
+        super().__init__(
+            message="Too many attempts. Please wait and try again.",
+            error_code="errors.too_many_requests",
+            status_code=429
+        )

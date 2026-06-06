@@ -6,16 +6,21 @@ import {
   type MapLayerMouseEvent,
   type MarkerEvent,
   Marker,
+  Popup,
 } from "@vis.gl/react-maplibre";
 import type { FeatureCollection, LineString } from "geojson";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import Markers from "../markers/Markers";
 import { useThemeContext } from "../contexts/ThemeContextProvider";
 import type { BaseCoordinates } from "@/helpers/baseCoordinates";
-import type { RouteData } from "@/entities/route";
+import type { RouteData, Station } from "@/entities/route";
 import axios from "axios";
 import { BusStation } from "../station/BusStation";
+import LiveBuses from "./LiveBuses";
+import type { LiveBus } from "@/entities/liveBus";
+import { Button } from "../shadcn/button";
 
 export const MapView = {
   VIEW: "view",
@@ -29,9 +34,22 @@ interface MapComponentProps {
   markerList?: BaseCoordinates[];
   routeData?: RouteData[];
   mode: MapViewMode;
+  liveBuses?: LiveBus[];
+  userLocation?: { lat: number; lon: number } | null;
+  walkingRoute?: [number, number][];
+  onSelectStation?: (station: Station) => void;
 }
 
-const ViewMap = ({ markerList, mode, routeData }: MapComponentProps) => {
+const ViewMap = ({
+  markerList,
+  mode,
+  routeData,
+  liveBuses,
+  userLocation,
+  walkingRoute,
+  onSelectStation,
+}: MapComponentProps) => {
+  const { t } = useTranslation();
   const bounds: [[number, number], [number, number]] = [
     [23.439274, 47.617155], // SW [lng, lat]
     [23.729459, 47.686301], // NE [lng, lat]
@@ -43,6 +61,14 @@ const ViewMap = ({ markerList, mode, routeData }: MapComponentProps) => {
 
   const [markers, setMarkers] = useState<BaseCoordinates[]>(markerList || []);
   const [coord, setCoord] = useState<BaseCoordinates[]>([]);
+
+  const [selectedBus, setSelectedBus] = useState<LiveBus | null>(null);
+  const [selectedStation, setSelectedStation] = useState<Station | null>(null);
+
+  const closeCards = () => {
+    setSelectedBus(null);
+    setSelectedStation(null);
+  };
 
   const test = async () => {
     if (coord.length < 2) return;
@@ -85,7 +111,7 @@ const ViewMap = ({ markerList, mode, routeData }: MapComponentProps) => {
   }, [coord.length]);
 
   const addMarker = (e: MapLayerMouseEvent) => {
-    // if (mode !== "edit") return;
+    if (mode === MapView.VIEW) return;
 
     const { lat, lng } = e.lngLat;
 
@@ -96,6 +122,12 @@ const ViewMap = ({ markerList, mode, routeData }: MapComponentProps) => {
     };
 
     setCoord((prev) => [...prev, newMarker]);
+  };
+
+  // Any click on the map itself (outside the markers/cards) closes the cards.
+  const handleMapClick = (e: MapLayerMouseEvent) => {
+    closeCards();
+    addMarker(e);
   };
 
   const handleMarkerDragEnd = (
@@ -184,7 +216,7 @@ const ViewMap = ({ markerList, mode, routeData }: MapComponentProps) => {
       minZoom={12}
       maxZoom={18}
       maxBounds={bounds}
-      onClick={addMarker}
+      onClick={handleMapClick}
       style={{ width: "100%", height: "100%" }}
     >
       <NavigationControl position="top-right" />
@@ -197,9 +229,112 @@ const ViewMap = ({ markerList, mode, routeData }: MapComponentProps) => {
       />
       {routeData?.map((route) =>
         route.stations.map((station) => (
-          <BusStation station={station} key={station.id} />
+          <BusStation
+            station={station}
+            key={station.id}
+            onClick={(s) => {
+              setSelectedBus(null);
+              setSelectedStation(s);
+            }}
+          />
         )),
       )}
+      <LiveBuses
+        buses={liveBuses}
+        onBusClick={(bus) => {
+          setSelectedStation(null);
+          setSelectedBus(bus);
+        }}
+      />
+
+      {selectedBus && (
+        <Popup
+          latitude={selectedBus.lat}
+          longitude={selectedBus.lon}
+          anchor="bottom"
+          offset={28}
+          closeButton={false}
+          closeOnClick={false}
+          onClose={() => setSelectedBus(null)}
+        >
+          <div className="flex flex-col items-center text-center">
+            <span className="text-base font-semibold">
+              {selectedBus.bus_name}
+            </span>
+          </div>
+        </Popup>
+      )}
+
+      {selectedStation && (
+        <Popup
+          latitude={selectedStation.lat}
+          longitude={selectedStation.long}
+          anchor="bottom"
+          offset={36}
+          closeButton={false}
+          closeOnClick={false}
+          onClose={() => setSelectedStation(null)}
+        >
+          <div className="flex flex-col items-center gap-2 text-center">
+            <span className="text-base font-semibold">
+              {selectedStation.name}
+            </span>
+            {onSelectStation && (
+              <Button
+                size="sm"
+                onClick={() => {
+                  onSelectStation(selectedStation);
+                  setSelectedStation(null);
+                }}
+              >
+                {t("home.select")}
+              </Button>
+            )}
+          </div>
+        </Popup>
+      )}
+
+      {userLocation && (
+        <Marker latitude={userLocation.lat} longitude={userLocation.lon}>
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#2563eb"
+            strokeWidth="2"
+          >
+            <circle cx="12" cy="12" r="6" />
+            <line x1="12" y1="1" x2="12" y2="5" />
+            <line x1="12" y1="19" x2="12" y2="23" />
+            <line x1="1" y1="12" x2="5" y2="12" />
+            <line x1="19" y1="12" x2="23" y2="12" />
+          </svg>
+        </Marker>
+      )}
+
+      {walkingRoute && walkingRoute.length > 1 && (
+        <Source
+          id="walking-route"
+          type="geojson"
+          data={{
+            type: "Feature",
+            geometry: { type: "LineString", coordinates: walkingRoute },
+            properties: {},
+          }}
+        >
+          <Layer
+            id="walking-route-line"
+            type="line"
+            paint={{
+              "line-color": "#2563eb",
+              "line-width": 5,
+              "line-dasharray": [1, 1.5],
+            }}
+          />
+        </Source>
+      )}
+
       {coord.map((item, i) => {
         return (
           <Marker
