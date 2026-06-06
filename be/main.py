@@ -1,15 +1,23 @@
-from endpoints import locations, register, lines, routes, stations, login, me, logout, lineStations
+from endpoints import locations, register, lines, routes, stations, login, me, logout, lineStations, simulation
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+import os
 
 from models.errors.Errors import AppError
 
 
 app = FastAPI()
 
+# Explicit allowlist of browser origins permitted to send credentialed requests.
+# Override in deployment via ALLOWED_ORIGINS (comma-separated), e.g.
+# ALLOWED_ORIGINS="http://localhost:5173,https://admin.example.com".
+# NOTE: a wildcard here together with allow_credentials=True would let any site
+# drive this API with a logged-in user's cookie, so keep it specific.
 origins = [
-    "http://localhost:5173",
+    o.strip()
+    for o in os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+    if o.strip()
 ]
 
 
@@ -25,8 +33,7 @@ async def app_error_handler(request: Request, exc: AppError):
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[],
-    allow_origin_regex=r"https?://.*",
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -41,3 +48,4 @@ app.include_router(me.router)
 app.include_router(stations.router)
 app.include_router(logout.router)
 app.include_router(lineStations.router)
+app.include_router(simulation.router)

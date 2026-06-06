@@ -82,3 +82,41 @@ npm run ios
 ### Physical device backend URL
 
 Edit `src/api/config.ts` and set `API_BASE_URL` to your machine's LAN IP, e.g. `http://192.168.1.10:8000`.
+
+---
+
+## Build a standalone APK (download & install on a phone)
+
+This produces a self-contained `app-release.apk` (JS bundle embedded, no Metro/PC
+needed). It targets the deployed Render backend by default (`BACKEND = 'render'`
+in `src/api/config.ts`), so the installed app works over Wi-Fi/cellular on its own.
+
+```bash
+cd mobile/android
+JAVA_HOME="/c/Program Files/Java/jdk-21" ./gradlew assembleRelease \
+  -PreactNativeArchitectures=arm64-v8a,armeabi-v7a
+```
+
+Output: `mobile/android/app/build/outputs/apk/release/app-release.apk`.
+
+**Signing.** The release build is signed with a dedicated key read from
+`android/keystore.properties` (gitignored) + `android/app/ontime-release.jks`
+(gitignored via `*.jks`). Keep a private backup of both — losing them means you
+can't ship updates with the same app identity. If the file is absent the build
+falls back to the debug key.
+
+**Install on the phone.** Transfer the APK (USB / Google Drive / email to
+yourself), then on the phone tap it and allow "install from unknown sources" for
+the app you opened it with. Or over USB with debugging on:
+`adb install -r app-release.apk`.
+
+**Gotchas on this machine (already handled):**
+- `JAVA_HOME` must be JDK 17/21 (an old JDK 11 is on PATH and breaks AGP 8.x).
+- Avast HTTPS scanning intercepts TLS, so Gradle can't download deps. The Avast
+  root CA was imported into `~/.gradle/cacerts.jks` and wired up via
+  `~/.gradle/gradle.properties` (`systemProp.javax.net.ssl.trustStore=...`).
+- Android `lintVital` is disabled for release in `app/build.gradle`.
+
+> **iOS:** building an installable iOS app requires macOS + Xcode (and an Apple
+> Developer account for anything beyond a 7-day free-provisioning sideload), so
+> it can't be produced from this Windows machine.

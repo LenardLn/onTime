@@ -3,6 +3,18 @@
     "home": "Acasă",
     "login": "Logare"
   },
+  "home": {
+    "selectLine": "Selectează linia",
+    "linePlaceholder": "— Alege o linie —",
+    "startSimulation": "Pornește simularea",
+    "starting": "Se pornește…",
+    "simulationStarted": "Simulare pornită",
+    "stopSimulation": "Oprește simularea",
+    "stopping": "Se oprește…",
+    "simulationStopped": "Simulare oprită",
+    "select": "Selectează",
+    "myLocation": "Locația mea"
+  },
   "registerPage": {
     "register": "Înregistrare",
     "email": "Email",

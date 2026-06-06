@@ -31,6 +31,10 @@ declare module '@react-native-community/geolocation' {
       },
     ) => void;
     clearWatch: (watchId: number) => void;
+    requestAuthorization: (
+      success?: () => void,
+      error?: (error: {message: string}) => void,
+    ) => void;
   }
 
   const Geolocation: GeolocationStatic;

@@ -1,12 +1,27 @@
-import React, {useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {Pressable, StyleSheet, Text, View} from 'react-native';
 import {DriverCredentials} from '../api/auth';
-import {useLocationTracker} from '../hooks/useLocationTracker';
+import {
+  useLocationTracker,
+  AccuracyMode,
+} from '../hooks/useLocationTracker';
 import {requestLocationPermission} from '../utils/permissions';
 
 type Props = {
   credentials: DriverCredentials;
   onLogout: () => void;
+};
+
+const MODES: {key: AccuracyMode; label: string}[] = [
+  {key: 'high', label: 'High (GPS)'},
+  {key: 'balanced', label: 'Balanced'},
+  {key: 'low', label: 'Low (Network)'},
+];
+
+const MODE_LABEL: Record<AccuracyMode, string> = {
+  high: 'High (GPS)',
+  balanced: 'Balanced',
+  low: 'Low (Network)',
 };
 
 export const TrackingScreen = ({credentials, onLogout}: Props) => {
@@ -15,6 +30,10 @@ export const TrackingScreen = ({credentials, onLogout}: Props) => {
   const [trackerError, setTrackerError] = useState<string | null>(null);
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [tracking, setTracking] = useState(false);
+
+  // Accuracy the user picked, and the one actually in use (may auto-fall-back).
+  const [accuracyMode, setAccuracyMode] = useState<AccuracyMode>('high');
+  const [activeMode, setActiveMode] = useState<AccuracyMode>('high');
 
   useEffect(() => {
     requestLocationPermission().then(granted => {
@@ -31,6 +50,7 @@ export const TrackingScreen = ({credentials, onLogout}: Props) => {
   useLocationTracker({
     busId: credentials.busId,
     enabled: permissionGranted && tracking,
+    accuracyMode,
     onError: message => {
       setTrackerError(message);
       setStatus('Error sending location');
@@ -40,6 +60,7 @@ export const TrackingScreen = ({credentials, onLogout}: Props) => {
       setStatus('Tracking active');
       setLastSent(new Date().toLocaleTimeString());
     },
+    onActiveModeChange: setActiveMode,
   });
 
   const toggleTracking = () => {
@@ -51,6 +72,8 @@ export const TrackingScreen = ({credentials, onLogout}: Props) => {
       setStatus('Waiting for GPS…');
     }
   };
+
+  const fellBack = tracking && activeMode !== accuracyMode;
 
   return (
     <View style={styles.container}>
@@ -73,8 +96,38 @@ export const TrackingScreen = ({credentials, onLogout}: Props) => {
         </Text>
       </View>
 
+      <Text style={styles.sectionLabel}>Location accuracy</Text>
+      <View style={styles.modeRow}>
+        {MODES.map(m => (
+          <Pressable
+            key={m.key}
+            style={[
+              styles.modeButton,
+              accuracyMode === m.key && styles.modeButtonActive,
+            ]}
+            onPress={() => setAccuracyMode(m.key)}>
+            <Text
+              style={[
+                styles.modeButtonText,
+                accuracyMode === m.key && styles.modeButtonTextActive,
+              ]}>
+              {m.label}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+      {fellBack ? (
+        <Text style={styles.fallbackNote}>
+          GPS couldn't get a fix — using {MODE_LABEL[activeMode]} instead.
+        </Text>
+      ) : null}
+
       <Pressable
-        style={[styles.button, tracking ? styles.stopButton : styles.startButton]}
+        style={[
+          styles.button,
+          tracking ? styles.stopButton : styles.startButton,
+          styles.buttonSpacer,
+        ]}
         disabled={!permissionGranted}
         onPress={toggleTracking}>
         <Text style={styles.buttonText}>
@@ -87,7 +140,7 @@ export const TrackingScreen = ({credentials, onLogout}: Props) => {
       </Pressable>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -142,11 +195,51 @@ const styles = StyleSheet.create({
     color: '#f87171',
     marginTop: 8,
   },
+  sectionLabel: {
+    fontSize: 12,
+    color: '#64748b',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  modeRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  modeButton: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+    backgroundColor: '#1e293b',
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  modeButtonActive: {
+    backgroundColor: '#2563eb',
+    borderColor: '#2563eb',
+  },
+  modeButtonText: {
+    color: '#cbd5e1',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  modeButtonTextActive: {
+    color: '#fff',
+  },
+  fallbackNote: {
+    color: '#fbbf24',
+    fontSize: 13,
+    marginTop: 10,
+  },
   button: {
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',
     marginBottom: 12,
+  },
+  buttonSpacer: {
+    marginTop: 24,
   },
   startButton: {
     backgroundColor: '#16a34a',
