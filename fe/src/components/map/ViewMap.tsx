@@ -221,7 +221,7 @@ const ViewMap = ({
       onClick={handleMapClick}
       style={{ width: "100%", height: "100%" }}
     >
-      <NavigationControl position="top-right" />
+      <NavigationControl position="bottom-right" />
       <Markers
         markers={markers}
         handleMarkers={handleOpenedMarkers}
@@ -299,20 +299,9 @@ const ViewMap = ({
 
       {userLocation && (
         <Marker latitude={userLocation.lat} longitude={userLocation.lon}>
-          <svg
-            width="28"
-            height="28"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#2563eb"
-            strokeWidth="2"
-          >
-            <circle cx="12" cy="12" r="6" />
-            <line x1="12" y1="1" x2="12" y2="5" />
-            <line x1="12" y1="19" x2="12" y2="23" />
-            <line x1="1" y1="12" x2="5" y2="12" />
-            <line x1="19" y1="12" x2="23" y2="12" />
-          </svg>
+          {/* Bright red dot with a white ring + soft halo so "you are here"
+              stands out against the map and route lines. */}
+          <span className="block size-5 rounded-full border-2 border-white bg-red-600 shadow-[0_0_0_5px_rgba(220,38,38,0.35)]" />
         </Marker>
       )}
 
@@ -330,7 +319,7 @@ const ViewMap = ({
             id="walking-route-line"
             type="line"
             paint={{
-              "line-color": "#2563eb",
+              "line-color": "#dc2626",
               "line-width": 5,
               "line-dasharray": [1, 1.5],
             }}

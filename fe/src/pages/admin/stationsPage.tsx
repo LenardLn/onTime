@@ -13,11 +13,14 @@ import {
   DialogTitle,
 } from "@/components/shadcn/dialog";
 import { Input } from "@/components/shadcn/input";
+import { Badge } from "@/components/shadcn/badge";
 import { BusStation } from "@/components/station/BusStation";
+import StationLinesPicker from "@/components/station/StationLinesPicker";
 import type { Station } from "@/entities/route";
 import useCreateStation from "@/hooks/admin/tanstack/useCreateStation";
 import useDeleteStation from "@/hooks/admin/tanstack/useDeleteStation";
 import useLines from "@/hooks/admin/tanstack/useLines";
+import useLineStations from "@/hooks/admin/tanstack/useLineStations";
 import useStations from "@/hooks/admin/tanstack/useStations";
 import useUpdateStation from "@/hooks/admin/tanstack/useUpdateStation";
 import useErrorMessage from "@/hooks/admin/useFetchSideEffects";
@@ -39,6 +42,7 @@ const StationsPage = () => {
 
   const { data, isLoading, isError, error } = useStations();
   const { data: lines } = useLines();
+  const { data: lineStations } = useLineStations();
   const { mutateAsync: createStation, isPending: isCreating } =
     useCreateStation();
   const { mutateAsync: updateStation, isPending: isUpdating } =
@@ -67,6 +71,10 @@ const StationsPage = () => {
 
   const lineName = (lineId?: number) =>
     lines?.find((line) => line.id === lineId)?.name ?? "—";
+
+  const attachmentsFor = (stationId: number) =>
+    lineStations?.line_stations.filter((ls) => ls.station_id === stationId) ??
+    [];
 
   const closeAdd = () => {
     setAddOpen(false);
@@ -121,7 +129,6 @@ const StationsPage = () => {
         id: editingStation.id,
         payload: {
           name: form.name,
-          line_id: Number(form.line_id),
           ...(editCoords && { lat: editCoords.lat, long: editCoords.long }),
         },
       });
@@ -155,6 +162,24 @@ const StationsPage = () => {
       accessorKey: "line_id",
       header: t("stationsPage.line"),
       cell: ({ row }) => lineName(row.original.line_id),
+    },
+    {
+      id: "attachedLines",
+      header: t("stationsPage.attachedLines"),
+      cell: ({ row }) => {
+        const items = attachmentsFor(Number(row.original.id));
+        if (items.length === 0)
+          return <span className="text-muted-foreground">—</span>;
+        return (
+          <div className="flex flex-wrap gap-1">
+            {items.map((ls) => (
+              <Badge key={ls.id} variant="secondary" className="text-base">
+                {ls.line_name ?? lineName(ls.line_id)}
+              </Badge>
+            ))}
+          </div>
+        );
+      },
     },
     {
       id: "coordinates",
@@ -257,7 +282,11 @@ const StationsPage = () => {
         </Button>
       </div>
 
-      <DataTable columns={columns} data={data?.stations ?? []} />
+      <DataTable
+        columns={columns}
+        data={data?.stations ?? []}
+        pageSize={10}
+      />
 
       {/* Add station: pick the spot on the map, then name it */}
       <Dialog
@@ -377,10 +406,15 @@ const StationsPage = () => {
               </div>
             )}
 
-            <div className="grid gap-5 sm:grid-cols-2">
-              {nameField}
-              {lineSelectField}
-            </div>
+            {nameField}
+
+            {editingStation && (
+              <StationLinesPicker
+                station={editingStation}
+                lines={lines ?? []}
+                attachments={attachmentsFor(Number(editingStation.id))}
+              />
+            )}
 
             <DialogFooter>
               <Button

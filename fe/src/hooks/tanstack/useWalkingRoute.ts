@@ -1,4 +1,8 @@
-import { getWalkingRoute, type LatLng } from "@/apis/geoapify.api";
+import {
+  getWalkingRoute,
+  type LatLng,
+  type WalkingRoute,
+} from "@/apis/geoapify.api";
 import { useQuery } from "@tanstack/react-query";
 
 // Round to ~1m so the query key only changes when the user actually moves,
@@ -6,7 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 const round = (n: number) => Math.round(n * 1e5) / 1e5;
 
 const useWalkingRoute = (from?: LatLng | null, to?: LatLng | null) => {
-  return useQuery<[number, number][], Error>({
+  return useQuery<WalkingRoute, Error>({
     queryKey: [
       "walkingRoute",
       from ? round(from.lat) : null,

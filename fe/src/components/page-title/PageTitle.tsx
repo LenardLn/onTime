@@ -12,13 +12,25 @@ const PageTitle = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const breadcrumbs = location.pathname
-    .split("/")
-    .filter(Boolean)
-    .map((part, index, arr) => ({
-      label: decodeURIComponent(part),
-      path: "/" + arr.slice(0, index + 1).join("/"),
-    }));
+  const segments = location.pathname.split("/").filter(Boolean);
+
+  // Build breadcrumbs from the URL while dropping segments that shouldn't be
+  // shown: the "admin" base (it duplicated "Dashboard") and numeric ids.
+  // e.g. /admin/routes/8/edit -> Routes (clickable) > Edit (current).
+  const crumbs = segments
+    .map((segment, index) => ({
+      segment: decodeURIComponent(segment),
+      path: "/" + segments.slice(0, index + 1).join("/"),
+    }))
+    .filter(({ segment }, index) => {
+      if (index === 0 && segment === "admin") return false;
+      if (/^\d+$/.test(segment)) return false;
+      return true;
+    });
+
+  if (crumbs.length === 0) return null;
+
+  const themedSvgClass = themedSvg(theme);
 
   const chevronItem: MenuItem = {
     key: "back",
@@ -26,13 +38,16 @@ const PageTitle = () => {
     alt: "Back Button",
   };
 
-  const themedSvgClass = themedSvg(theme);
+  const label = (segment: string) =>
+    t(`admin.${segment}`, {
+      defaultValue: segment.charAt(0).toUpperCase() + segment.slice(1),
+    });
 
   return (
     <div className="flex gap-4 items-center">
       <div className="flex items-center gap-2 ml-8">
-        {breadcrumbs.map((crumb, index) => {
-          const isLast = index === breadcrumbs.length - 1;
+        {crumbs.map((crumb, index) => {
+          const isLast = index === crumbs.length - 1;
 
           return (
             <div key={crumb.path} className="flex items-center gap-2">
@@ -40,14 +55,10 @@ const PageTitle = () => {
                 onClick={isLast ? undefined : () => navigate(crumb.path)}
                 className={`${isLast ? "text-light-blue underline" : "cursor-pointer hover:underline"} text-2xl font-bold`}
               >
-                {Number(crumb.label)
-                  ? crumb.label
-                  : t(
-                      `admin.${crumb.label === "admin" ? "dashboard" : crumb.label}`,
-                    )}
+                {label(crumb.segment)}
               </span>
 
-              {index < breadcrumbs.length - 1 && (
+              {!isLast && (
                 <UtilityIcon
                   neutral={true}
                   buttonClass="!hover:cursor-normal !hover:bg-background !active:bg-background"

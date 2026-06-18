@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from db import get_db
 from models.db_schemas.Station import Station as StationDB
+from models.db_schemas.LineStation import LineStation as LineStationDB
 from models.StationModel import StationCreate, Station, StationUpdate
 from models.db_schemas.User import User as UserDB
 from helpers.get_current_user import get_current_user
@@ -55,6 +56,25 @@ async def create_station(
     db.add(new_station)
     db.commit()
     db.refresh(new_station)
+
+    # Keep the line_stations junction in sync: a brand new station starts out
+    # attached to the line it was created on, so it shows up everywhere the
+    # many-to-many link is used (route view, admin "attached lines").
+    max_ls_order = (
+        db.query(func.max(LineStationDB.order_index))
+        .filter(LineStationDB.line_id == data.line_id)
+        .scalar()
+    )
+    db.add(
+        LineStationDB(
+            line_id=data.line_id,
+            station_id=new_station.id,
+            order_index=(max_ls_order + 1) if max_ls_order is not None else 0,
+            created_by=user["id"],
+            created_at=datetime.now(timezone.utc),
+        )
+    )
+    db.commit()
 
     return {
         "stations": [{

@@ -51,6 +51,15 @@ export const createLine = async (line_name: string) => {
   return await request("post", adminApi.LINE, { name: line_name }, true);
 };
 
+export const deleteLine = async (id: string | number) => {
+  return await request(
+    "delete",
+    adminApi.GET_LINE_DETAILS(String(id)),
+    undefined,
+    true,
+  );
+};
+
 export const createRoute = async ({ lineId, routeData }: { lineId: string; routeData: any }) => {
   return await request("post", adminApi.ROUTE_ID(lineId), routeData, true);
 };

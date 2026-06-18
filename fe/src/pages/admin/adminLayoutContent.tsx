@@ -15,7 +15,7 @@ const AdminLayoutContent = () => {
           <UserUtilitiesHeader />
         </header>
 
-        <Container className="flex-1 min-h-0">
+        <Container className="flex-1 min-h-0 overflow-y-auto">
           <Outlet />
         </Container>
       </main>

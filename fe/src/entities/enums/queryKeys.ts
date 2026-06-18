@@ -3,6 +3,8 @@ export const queryKeys = {
   ROUTES: "routes",
   STATIONS: "stations",
   USERS: "users",
+  ANALYTICS: "analytics",
+  LINE_STATIONS: "line-stations",
 } as const;
 
 export const genericQueryKeys = {
