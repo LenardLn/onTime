@@ -1,7 +1,9 @@
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { LocateFixed } from "lucide-react";
 import { useThemeContext } from "../contexts/ThemeContextProvider";
+import { useUserLocationContext } from "../contexts/userLocationContext";
 import { themedSvg } from "../utils/themedSvg";
 import onTimeDark from "@/assets/onTime-dark.svg";
 import onTimeLight from "@/assets/onTime-light.svg";
@@ -13,6 +15,12 @@ import lightSvg from "@/assets/light.svg";
 const Navbar = () => {
   const { t, i18n } = useTranslation();
   const { theme, setTheme } = useThemeContext();
+  const { pathname } = useLocation();
+  const { enabled: locationEnabled, toggle: toggleLocation } =
+    useUserLocationContext();
+
+  // The location toggle only makes sense on the map (home) page.
+  const showLocation = pathname === "/";
 
   const logo = theme === "light" ? onTimeLight : onTimeDark;
   const themedSvgClass = themedSvg(theme);
@@ -43,6 +51,19 @@ const Navbar = () => {
       </Link>
 
       <nav className="flex items-center gap-4">
+        {showLocation && (
+          <button
+            onClick={toggleLocation}
+            title={t("home.myLocation")}
+            aria-pressed={locationEnabled}
+            className={`rounded-md p-1.5 transition-colors hover:bg-accent hover:cursor-pointer ${
+              locationEnabled ? "text-light-blue" : "text-foreground"
+            }`}
+          >
+            <LocateFixed className="size-[30px]" strokeWidth={2} />
+          </button>
+        )}
+
         <button
           onClick={toggleLanguage}
           title={t("admin.language")}

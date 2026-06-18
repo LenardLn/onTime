@@ -7,8 +7,9 @@ import HomeControls, {
 import useRoute from "../hooks/admin/tanstack/useRoute";
 import useLiveBuses from "../hooks/tanstack/useLiveBuses";
 import useClosestBus from "../hooks/tanstack/useClosestBus";
-import { BusFront, X } from "lucide-react";
-import useUserLocation from "../hooks/useUserLocation";
+import { BusFront, Footprints, X } from "lucide-react";
+import { toast } from "sonner";
+import { useUserLocationContext } from "../components/contexts/userLocationContext";
 import useWalkingRoute from "../hooks/tanstack/useWalkingRoute";
 import type { Station } from "../entities/route";
 import { axiosInstance } from "../apiConfig";
@@ -58,12 +59,22 @@ const HomePage = () => {
   );
   const closestBus = shouldPoll ? closestBusData?.bus : null;
 
-  const { location, enable } = useUserLocation();
+  const { location, enable, error: locationError } = useUserLocationContext();
 
-  const { data: walkingRoute } = useWalkingRoute(
+  // Geolocation failures (permission blocked, GPS off, timeout) are otherwise
+  // invisible — surface them so it's clear why the dot isn't showing.
+  useEffect(() => {
+    if (locationError) toast.error(locationError);
+  }, [locationError]);
+
+  const { data: walking } = useWalkingRoute(
     location,
     targetStation ? { lat: targetStation.lat, lon: targetStation.long } : null,
   );
+  const walkingMinutes =
+    walking?.durationSec != null
+      ? Math.max(1, Math.round(walking.durationSec / 60))
+      : null;
 
   const handleSelectStation = (station: Station) => {
     setTargetStation(station);
@@ -86,7 +97,7 @@ const HomePage = () => {
           routeData={routeResponse?.response}
           liveBuses={liveBuses}
           userLocation={location}
-          walkingRoute={walkingRoute}
+          walkingRoute={walking?.coordinates}
           onSelectStation={handleSelectStation}
           highlightBusId={closestBus?.bus_id}
         />
@@ -104,25 +115,47 @@ const HomePage = () => {
       />
 
       {targetStation && (
-        <div className="absolute bottom-8 left-1/2 z-30 flex -translate-x-1/2 items-center gap-4 rounded-2xl border bg-background/90 px-5 py-4 shadow-xl backdrop-blur">
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <BusFront className="size-6" />
-          </div>
-          <div className="leading-snug">
+        <div className="absolute bottom-8 left-1/2 z-30 flex w-[min(92vw,28rem)] -translate-x-1/2 items-start gap-3 rounded-2xl border bg-background/95 px-5 py-4 shadow-xl backdrop-blur">
+          <div className="min-w-0 flex-1 space-y-1.5">
             <p className="text-lg font-semibold">{targetStation.name}</p>
-            {closestBus ? (
+
+            {/* Walking time to the station */}
+            {walkingMinutes != null ? (
+              <p className="flex items-center gap-2 text-base">
+                <Footprints className="size-5 shrink-0 text-primary" />
+                <span>
+                  <span className="font-semibold">
+                    {t("home.walkMinutes", { minutes: walkingMinutes })}
+                  </span>{" "}
+                  · {formatDistance(walking?.distanceM ?? 0)}
+                </span>
+              </p>
+            ) : location ? (
               <p className="text-base text-muted-foreground">
-                {t("home.closestBus", {
-                  bus: closestBus.bus_name,
-                  distance: formatDistance(closestBus.distance_m),
-                  minutes: Math.max(
-                    1,
-                    Math.round(closestBus.eta_seconds / 60),
-                  ),
-                })}
+                {t("home.walkingCalculating")}
+              </p>
+            ) : null}
+
+            {/* Time until the next bus reaches this station */}
+            {closestBus ? (
+              <p className="flex items-center gap-2 text-base">
+                <BusFront className="size-5 shrink-0 text-primary" />
+                <span>
+                  <span className="font-semibold">
+                    {t("home.busMinutes", {
+                      minutes: Math.max(
+                        1,
+                        Math.round(closestBus.eta_seconds / 60),
+                      ),
+                    })}
+                  </span>{" "}
+                  · {closestBus.bus_name} ·{" "}
+                  {formatDistance(closestBus.distance_m)}
+                </span>
               </p>
             ) : (
-              <p className="text-base text-muted-foreground">
+              <p className="flex items-center gap-2 text-base text-muted-foreground">
+                <BusFront className="size-5 shrink-0" />
                 {t("home.noBusApproaching")}
               </p>
             )}
@@ -130,33 +163,12 @@ const HomePage = () => {
           <button
             onClick={() => setTargetStation(null)}
             title={t("admin.cancel")}
-            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground hover:cursor-pointer"
+            className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground hover:cursor-pointer"
           >
             <X className="size-5" />
           </button>
         </div>
       )}
-
-      <button
-        onClick={enable}
-        title={t("home.myLocation")}
-        className="absolute bottom-8 right-4 z-30 flex size-12 items-center justify-center rounded-full bg-background/90 shadow-lg backdrop-blur hover:bg-background"
-      >
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#2563eb"
-          strokeWidth="2"
-        >
-          <circle cx="12" cy="12" r="6" />
-          <line x1="12" y1="1" x2="12" y2="5" />
-          <line x1="12" y1="19" x2="12" y2="23" />
-          <line x1="1" y1="12" x2="5" y2="12" />
-          <line x1="19" y1="12" x2="23" y2="12" />
-        </svg>
-      </button>
     </div>
   );
 };

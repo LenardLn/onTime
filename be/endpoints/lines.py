@@ -57,19 +57,31 @@ async def delete_line(
     if not line:
         raise LineNotFoundError()
 
-    # 2. routes 
+    # 2. line_stations: remove every junction row that points at this line or
+    # at one of its stations (a station may be attached to several lines), so
+    # the station deletes below don't trip the foreign key.
+    db.execute(
+        text(
+            "DELETE FROM line_stations "
+            "WHERE line_id = :line_id "
+            "OR station_id IN (SELECT id FROM stations WHERE line_id = :line_id)"
+        ),
+        {"line_id": line_id}
+    )
+
+    # 3. routes
     db.execute(
         text("DELETE FROM routes WHERE line_id = :line_id"),
         {"line_id": line_id}
     )
 
-    # 3. stations 
+    # 4. stations
     db.execute(
         text("DELETE FROM stations WHERE line_id = :line_id"),
         {"line_id": line_id}
     )
 
-    # 4. line 
+    # 5. line
     db.delete(line)
 
     db.commit()
