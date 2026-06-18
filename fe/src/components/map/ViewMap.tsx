@@ -38,6 +38,7 @@ interface MapComponentProps {
   userLocation?: { lat: number; lon: number } | null;
   walkingRoute?: [number, number][];
   onSelectStation?: (station: Station) => void;
+  highlightBusId?: number;
 }
 
 const ViewMap = ({
@@ -48,6 +49,7 @@ const ViewMap = ({
   userLocation,
   walkingRoute,
   onSelectStation,
+  highlightBusId,
 }: MapComponentProps) => {
   const { t } = useTranslation();
   const bounds: [[number, number], [number, number]] = [
@@ -241,6 +243,7 @@ const ViewMap = ({
       )}
       <LiveBuses
         buses={liveBuses}
+        highlightBusId={highlightBusId}
         onBusClick={(bus) => {
           setSelectedStation(null);
           setSelectedBus(bus);

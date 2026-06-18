@@ -1,5 +1,9 @@
 import { request } from "@/apiConfig";
-import type { RouteFilters } from "@/entities/route";
+import type {
+  CreateStationPayload,
+  RouteFilters,
+  StationsResponse,
+} from "@/entities/route";
 import { buildQueryParams } from "@/helpers/buildQueryParams";
 
 const adminApi = {
@@ -8,6 +12,8 @@ const adminApi = {
   GET_STATION_DETAILS: (id: string) => `/station/${id}`,
   ROUTE: "/route",
   ROUTE_ID: (id: string) => `/route/${id}`,
+  STATIONS: "/stations",
+  STATION_ID: (id: string | number) => `/stations/${id}`,
 } as const;
 
 const urls = {
@@ -51,4 +57,41 @@ export const createRoute = async ({ lineId, routeData }: { lineId: string; route
 
 export const deleteRoute = async (id: string) => {
   return await request("delete", adminApi.ROUTE_ID(id), undefined, true);
+};
+
+export const getStations = async () => {
+  return await request<StationsResponse>(
+    "get",
+    adminApi.STATIONS,
+    undefined,
+    true,
+  );
+};
+
+export const createStation = async (payload: CreateStationPayload) => {
+  return await request<StationsResponse>(
+    "post",
+    adminApi.STATIONS,
+    payload,
+    true,
+  );
+};
+
+export const updateStation = async ({
+  id,
+  payload,
+}: {
+  id: string | number;
+  payload: Partial<CreateStationPayload>;
+}) => {
+  return await request<StationsResponse>(
+    "put",
+    adminApi.STATION_ID(id),
+    payload,
+    true,
+  );
+};
+
+export const deleteStation = async (id: string | number) => {
+  return await request("delete", adminApi.STATION_ID(id), undefined, true);
 };

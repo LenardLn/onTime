@@ -1,8 +1,6 @@
 
 import { getRouteDetails } from "@/apis/admin.api";
-import { genericQueryKeys, queryKeys } from "@/entities/enums/queryKeys";
 import type { RouteData, RouteFilters } from "@/entities/route";
-import { queryTime } from "@/helpers/queryTime";
 import { useQuery } from "@tanstack/react-query";
 
 

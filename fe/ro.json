@@ -13,13 +13,81 @@
     "stopping": "Se oprește…",
     "simulationStopped": "Simulare oprită",
     "select": "Selectează",
-    "myLocation": "Locația mea"
+    "myLocation": "Locația mea",
+    "dataSource": "Sursa datelor",
+    "liveMode": "GPS real",
+    "simulationMode": "Simulare",
+    "liveHint": "Poziții reale trimise de pe telefoanele șoferilor",
+    "busesOnline_one": "{{count}} autobuz online",
+    "busesOnline_few": "{{count}} autobuze online",
+    "busesOnline_other": "{{count}} de autobuze online",
+    "closestBus": "{{bus}} se apropie — la {{distance}}, ~{{minutes}} min",
+    "noBusApproaching": "Niciun autobuz activ nu se apropie de această stație"
   },
   "registerPage": {
     "register": "Înregistrare",
+    "createUser": "Creează utilizator",
+    "createUserSubtitle": "Adaugă un cont nou de admin sau șofer",
+    "loginSubtitle": "Autentifică-te pentru a gestiona rețeaua de transport",
+    "userType": "Tip utilizator",
+    "admin": "Admin",
+    "driver": "Șofer",
+    "adminDescription": "Acces complet la trasee, stații și utilizatori",
+    "driverDescription": "Se conectează din aplicația mobilă cu un autobuz",
+    "userCreated": "Utilizator creat cu succes",
     "email": "Email",
     "password": "Parolă",
     "confirmPassword": "Confirmă parola"
+  },
+  "profilePage": {
+    "signedInAs": "Autentificat ca {{role}}",
+    "changeEmail": "Schimbă emailul",
+    "changeEmailSubtitle": "Actualizează adresa de email folosită la autentificare",
+    "newEmail": "Email nou",
+    "currentPassword": "Parola curentă",
+    "changePassword": "Schimbă parola",
+    "changePasswordSubtitle": "Alege o parolă puternică de cel puțin 8 caractere",
+    "newPassword": "Parolă nouă",
+    "updatePassword": "Actualizează parola",
+    "saveChanges": "Salvează modificările",
+    "emailUpdated": "Email actualizat cu succes",
+    "passwordUpdated": "Parolă actualizată cu succes"
+  },
+  "stationsPage": {
+    "mapHint": "Apasă pe hartă pentru a alege locația stației",
+    "createStation": "Adaugă stație",
+    "editStation": "Editează stația",
+    "deleteStation": "Șterge stația",
+    "deleteStationConfirm": "Sigur vrei să ștergi \"{{name}}\"? Acțiunea nu poate fi anulată.",
+    "stationName": "Numele stației",
+    "stationNamePlaceholder": "ex. Piața Centrală",
+    "line": "Linie",
+    "linePlaceholder": "— Alege o linie —",
+    "coordinates": "Coordonate",
+    "locationRequired": "Alege mai întâi o locație pe hartă",
+    "dragHint": "Trage marcajul pentru a muta stația",
+    "stationCreated": "Stația \"{{name}}\" a fost creată",
+    "stationUpdated": "Stația \"{{name}}\" a fost actualizată",
+    "stationDeleted": "Stația \"{{name}}\" a fost ștearsă"
+  },
+  "usersPage": {
+    "editUser": "Editează utilizatorul",
+    "deleteUser": "Șterge utilizatorul",
+    "deleteUserConfirm": "Sigur vrei să ștergi \"{{email}}\"? Acțiunea nu poate fi anulată.",
+    "createdAt": "Creat",
+    "resetPassword": "Resetează parola (opțional)",
+    "resetPasswordPlaceholder": "Lasă gol pentru a păstra parola curentă",
+    "cannotDeleteSelf": "Nu îți poți șterge propriul cont",
+    "userUpdated": "Utilizatorul \"{{email}}\" a fost actualizat",
+    "userDeleted": "Utilizatorul \"{{email}}\" a fost șters"
+  },
+  "routesPage": {
+    "createRoute": "Creează traseu",
+    "createLine": "Creează linie nouă",
+    "createLineSubtitle": "O linie grupează un traseu și stațiile sale",
+    "lineName": "Numele liniei",
+    "lineNamePlaceholder": "ex. Linia 14",
+    "lineCreated": "Linia \"{{name}}\" a fost creată"
   },
   "admin": {
     "dashboard": "Tablou de Bord",
@@ -28,6 +96,8 @@
     "stations": "Stații",
     "buses": "Autobuze",
     "users": "Utilizatori",
+    "profile": "Profil",
+    "register": "Creează utilizator",
     "toggle": "Comută",
     "language": "Limbă",
     "theme": "Tematică",
@@ -35,12 +105,17 @@
     "delete": "Șterge",
     "edit": "Editează",
     "add": "Adaugă",
+    "cancel": "Anulează",
     "name": "Nume",
     "action": "Acțiune",
-    "viewRoute": "Vezi Traseu"
+    "viewRoute": "Vezi Traseu",
+    "noResults": "Nimic aici încă"
   },
   "errors": {
     "isRequired": "{{field}} este obligatoriu",
-    "passwordsDoNotMatch": "Parolele nu se potrivesc"
+    "passwordsDoNotMatch": "Parolele nu se potrivesc",
+    "invalidEmail": "Introdu o adresă de email validă",
+    "passwordTooShort": "Parola trebuie să aibă cel puțin {{count}} caractere",
+    "nameTooShort": "Numele trebuie să aibă cel puțin {{count}} caractere"
   }
 }

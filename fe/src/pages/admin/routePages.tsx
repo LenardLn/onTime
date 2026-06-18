@@ -1,9 +1,8 @@
 import { useLineColumns } from "@/components/data-table/columns/GenericColumns";
 import { DataTable } from "@/components/data-table/DataTable";
+import CreateLineDialog from "@/components/line/CreateLineDialog";
 import PageLoader from "@/components/loaders/PageLoader";
-import { Button } from "@/components/shadcn/button";
 import { appPaths } from "@/entities/enums/appPaths";
-import useCreateLine from "@/hooks/admin/tanstack/useCreateLine";
 import useLines from "@/hooks/admin/tanstack/useLines";
 import useErrorMessage from "@/hooks/admin/useFetchSideEffects";
 
@@ -16,19 +15,17 @@ const RoutePage = () => {
     actionColumnName: "",
   });
 
-  const { mutate: createLine } = useCreateLine();
-
   useErrorMessage({ isError, error });
 
   if (isLoading) return <PageLoader />;
 
   return (
-    <>
-      <Button onClick={() => createLine("text Lucian STOIAN")}>
-        Create New Line
-      </Button>
+    <div className="grid gap-4 p-6">
+      <div className="flex justify-end">
+        <CreateLineDialog />
+      </div>
       <DataTable columns={columns} data={lines ?? []} />
-    </>
+    </div>
   );
 };
 

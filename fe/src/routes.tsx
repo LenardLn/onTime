@@ -11,6 +11,8 @@ import { appPaths } from "./entities/enums/appPaths";
 import RoutePage from "./pages/admin/routePages";
 import RouteDetailsPage from "./pages/admin/routeDetailsPage";
 import ManageRoutePage from "./pages/admin/manageRoutePage";
+import StationsPage from "./pages/admin/stationsPage";
+import UsersPage from "./pages/admin/usersPage";
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAuthContext();
@@ -39,12 +41,24 @@ const router = createBrowserRouter([
     ),
     children: [
       {
+        index: true,
+        element: <Navigate to={appPaths.adminDashboard} replace />,
+      },
+      {
         path: "register",
         element: <AuthPage mode="register" />,
       },
       {
         path: "dashboard",
         element: <DashboardPage />,
+      },
+      {
+        path: appPaths.adminStations,
+        element: <StationsPage />,
+      },
+      {
+        path: appPaths.adminUsers,
+        element: <UsersPage />,
       },
       {
         path: "profile",

@@ -7,6 +7,21 @@ export type Station = {
   lat: number;
   long: number;
   order_index: number;
+  line_id?: number;
+  station_id?: number;
+};
+
+export type StationsResponse = {
+  stations: Station[];
+  created_at?: string | null;
+  created_by?: CreatedBy | null;
+};
+
+export type CreateStationPayload = {
+  name: string;
+  line_id: number;
+  lat: number;
+  long: number;
 };
 
 export type RouteData = {
