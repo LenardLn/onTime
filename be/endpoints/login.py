@@ -36,19 +36,24 @@ def login(
 
     user = db.query(User).filter(User.email == data.email).first()
 
+    # Drivers (mobile app) send a bus_name; the admin panel logs in without one.
+    expected_role = "Driver" if data.bus_name else "Admin"
+
     # Run a hash verify even when the user is missing (constant-time-ish), and
-    # return one generic error for bad password OR non-driver accounts so we
+    # return one generic error for bad password OR wrong-role accounts so we
     # never reveal which part was wrong.
     password_ok = verify_password(
         data.password, user.password if user else _DUMMY_HASH
     )
-    if not user or not password_ok or str(user.roles) != "Driver":
+    if not user or not password_ok or str(user.roles) != expected_role:
         login_failures.record_failure(email_key)
         raise InvalideCredentials()
 
-    bus = db.query(Bus).filter(Bus.name == data.bus_name).first()
-    if not bus:
-        raise BusNotFoundError()
+    bus = None
+    if data.bus_name:
+        bus = db.query(Bus).filter(Bus.name == data.bus_name).first()
+        if not bus:
+            raise BusNotFoundError()
 
     login_failures.reset(email_key)
 
@@ -75,5 +80,5 @@ def login(
             "id": bus.id,
             "name": bus.name,
             "line_id": bus.line_id,
-        },
+        } if bus else None,
     }

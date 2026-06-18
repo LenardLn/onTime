@@ -7,3 +7,17 @@ export type LiveBus = {
   vel: number;
   time: string;
 };
+
+export type ClosestBus = {
+  bus_id: number;
+  bus_name: string;
+  lat: number;
+  lon: number;
+  distance_m: number;
+  eta_seconds: number;
+  heading_known: boolean;
+};
+
+export type ClosestBusResponse = {
+  bus: ClosestBus | null;
+};

@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from db import get_db
@@ -25,13 +26,27 @@ async def create_station(
     user=Depends(get_current_user)
 ):
 
+    station_id = data.station_id
+    if station_id is None:
+        max_station_id = db.query(func.max(StationDB.station_id)).scalar()
+        station_id = (max_station_id or 0) + 1
+
+    order_index = data.order_index
+    if order_index is None:
+        max_order = (
+            db.query(func.max(StationDB.order_index))
+            .filter(StationDB.line_id == data.line_id)
+            .scalar()
+        )
+        order_index = (max_order + 1) if max_order is not None else 0
+
     new_station = StationDB(
         name=data.name,
-        station_id=data.station_id,
+        station_id=station_id,
         line_id=data.line_id,
         lat=data.lat,
         long=data.long,
-        order_index=data.order_index,
+        order_index=order_index,
         created_by=user["id"],
         created_at=datetime.now(timezone.utc)
 
@@ -85,8 +100,8 @@ async def get_stations(
             raise StationNotFoundError()
         elif line_ids:
             raise LineNotFoundError()
-        else:
-            raise StationNotFoundError()
+        # No filters: an empty network is a valid state, not an error.
+        return {"stations": [], "created_at": None, "created_by": None}
 
     latest_station, latest_user =  max(
             rows,

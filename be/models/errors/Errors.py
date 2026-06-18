@@ -145,6 +145,24 @@ class NotADriverError(AppError):
         )
 
 
+class AdminRequiredError(AppError):
+    def __init__(self):
+        super().__init__(
+            message="Admin access required",
+            error_code="errors.admin_required",
+            status_code=403
+        )
+
+
+class CannotDeleteSelfError(AppError):
+    def __init__(self):
+        super().__init__(
+            message="You cannot delete your own account",
+            error_code="errors.cannot_delete_self",
+            status_code=400
+        )
+
+
 class TooManyRequestsError(AppError):
     def __init__(self):
         super().__init__(

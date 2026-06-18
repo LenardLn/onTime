@@ -6,9 +6,10 @@ import { useMapEditorContext } from "../contexts/mapEditorContext";
 interface BaseMapProps {
   children: ReactNode;
   handleAddMarker?: (e: maplibregl.MapMouseEvent) => void;
+  center?: { lat: number; long: number; zoom?: number };
 }
 
-const BaseMap = ({ children, handleAddMarker }: BaseMapProps) => {
+const BaseMap = ({ children, handleAddMarker, center }: BaseMapProps) => {
   const { theme } = useThemeContext();
   const { isLocked } = useMapEditorContext();
 
@@ -25,9 +26,9 @@ const BaseMap = ({ children, handleAddMarker }: BaseMapProps) => {
           : "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
       }
       initialViewState={{
-        latitude: 47.657,
-        longitude: 23.578,
-        zoom: 12,
+        latitude: center?.lat ?? 47.657,
+        longitude: center?.long ?? 23.578,
+        zoom: center?.zoom ?? 12,
       }}
       minZoom={12}
       maxZoom={18}

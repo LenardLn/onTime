@@ -1,68 +1,73 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { useThemeContext } from "../contexts/ThemeContextProvider";
+import { themedSvg } from "../utils/themedSvg";
+import onTimeDark from "@/assets/onTime-dark.svg";
+import onTimeLight from "@/assets/onTime-light.svg";
+import ENSvg from "@/assets/EN.svg";
+import ROSvg from "@/assets/RO.svg";
+import darkSvg from "@/assets/dark.svg";
+import lightSvg from "@/assets/light.svg";
 
 const Navbar = () => {
   const { t, i18n } = useTranslation();
   const { theme, setTheme } = useThemeContext();
 
-  const [active, setActive] = useState("1");
+  const logo = theme === "light" ? onTimeLight : onTimeDark;
+  const themedSvgClass = themedSvg(theme);
 
-  const changeLanguage = (lng: string, id: string) => {
-    i18n.changeLanguage(lng);
-    setActive(id);
-    localStorage.setItem("language", id);
+  const toggleLanguage = () => {
+    const next = i18n.language === "ro" ? "en" : "ro";
+    i18n.changeLanguage(next);
+    localStorage.setItem("language", next);
   };
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
   };
 
-  const languages = [
-    { id: "1", text: "RO" },
-    { id: "2", text: "EN" },
-  ];
-
   useEffect(() => {
     const savedLanguage = localStorage.getItem("language");
-    if (savedLanguage) {
-      setActive(savedLanguage);
-      i18n.changeLanguage(savedLanguage === "ro" ? "ro" : "en");
-    } else {
-      localStorage.setItem("language", "ro");
-      i18n.changeLanguage("ro");
-    }
+    // Older builds stored "1"/"2" ids here; treat anything not "en" as "ro".
+    const language = savedLanguage === "en" ? "en" : "ro";
+    i18n.changeLanguage(language);
+    localStorage.setItem("language", language);
   }, []);
 
   return (
-    <div className="flex absolute top-0 z-20 w-full">
-      <nav id="navbar" className="flex gap-4 mr-5 flex-wrap">
-        <Link to="/">{t("homePage.home")}</Link>
-        <Link to="/login">{t("homePage.login")}</Link>
+    <header className="absolute top-0 z-20 flex w-full items-center justify-between bg-background/80 px-6 py-3 shadow-[0_2px_5px_var(--color-shadow)] backdrop-blur-md">
+      <Link to="/" className="flex items-center gap-3">
+        <img src={logo} alt="onTime logo" className="size-[36px] shrink-0" />
+        <span className="text-3xl font-semibold">onTime</span>
+      </Link>
 
-        {languages.map((language) => (
-          <span
-            key={language.id}
-            onClick={() =>
-              changeLanguage(language.text.toLowerCase(), language.id)
-            }
-            className={`px-2 py-1 hover:cursor-pointer ${
-              active === language.id ? "navbar__active" : ""
-            }`}
-          >
-            {language.text}
-          </span>
-        ))}
+      <nav className="flex items-center gap-4">
+        <button
+          onClick={toggleLanguage}
+          title={t("admin.language")}
+          className="rounded-md p-1.5 transition-colors hover:bg-accent hover:cursor-pointer"
+        >
+          <img
+            src={i18n.language === "ro" ? ROSvg : ENSvg}
+            alt="Language Icon"
+            className={`size-[30px] ${themedSvgClass}`}
+          />
+        </button>
 
         <button
           onClick={toggleTheme}
-          className="hover:cursor-pointer navbar__active"
+          title={t("admin.theme")}
+          className="rounded-md p-1.5 transition-colors hover:bg-accent hover:cursor-pointer"
         >
-          {theme === "dark" ? "🌙" : "☀️"}
+          <img
+            src={theme === "dark" ? darkSvg : lightSvg}
+            alt="Theme Icon"
+            className={`size-[30px] ${themedSvgClass}`}
+          />
         </button>
       </nav>
-    </div>
+    </header>
   );
 };
 

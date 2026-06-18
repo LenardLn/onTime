@@ -2,3 +2,9 @@
   background-color: var(--color-bg);
   color: var(--color-text);
 }
+
+/* The public navbar overlays the top of the map; push the zoom controls
+   below it (only on the home page). */
+.home-map .maplibregl-ctrl-top-right {
+  top: 4.5rem;
+}

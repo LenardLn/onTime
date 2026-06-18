@@ -13,13 +13,80 @@
     "stopping": "Stopping…",
     "simulationStopped": "Simulation stopped",
     "select": "Select",
-    "myLocation": "My location"
+    "myLocation": "My location",
+    "dataSource": "Data source",
+    "liveMode": "Live GPS",
+    "simulationMode": "Simulation",
+    "liveHint": "Showing real positions sent from drivers' phones",
+    "busesOnline_one": "{{count}} bus online",
+    "busesOnline_other": "{{count}} buses online",
+    "closestBus": "{{bus}} is approaching — {{distance}} away, ~{{minutes}} min",
+    "noBusApproaching": "No active bus approaching this station yet"
   },
   "registerPage": {
     "register": "Register",
+    "createUser": "Create User",
+    "createUserSubtitle": "Add a new admin or driver account",
+    "loginSubtitle": "Sign in to manage your transit network",
+    "userType": "User type",
+    "admin": "Admin",
+    "driver": "Driver",
+    "adminDescription": "Full access to routes, stations and users",
+    "driverDescription": "Logs in from the mobile app with a bus",
+    "userCreated": "User created successfully",
     "email": "Email",
     "password": "Password",
     "confirmPassword": "Confirm password"
+  },
+  "profilePage": {
+    "signedInAs": "Signed in as {{role}}",
+    "changeEmail": "Change email",
+    "changeEmailSubtitle": "Update the email address you use to sign in",
+    "newEmail": "New email",
+    "currentPassword": "Current password",
+    "changePassword": "Change password",
+    "changePasswordSubtitle": "Choose a strong password of at least 8 characters",
+    "newPassword": "New password",
+    "updatePassword": "Update password",
+    "saveChanges": "Save changes",
+    "emailUpdated": "Email updated successfully",
+    "passwordUpdated": "Password updated successfully"
+  },
+  "stationsPage": {
+    "mapHint": "Click on the map to choose the station's location",
+    "createStation": "Add station",
+    "editStation": "Edit station",
+    "deleteStation": "Delete station",
+    "deleteStationConfirm": "Are you sure you want to delete \"{{name}}\"? This cannot be undone.",
+    "stationName": "Station name",
+    "stationNamePlaceholder": "e.g. Central Square",
+    "line": "Line",
+    "linePlaceholder": "— Choose a line —",
+    "coordinates": "Coordinates",
+    "locationRequired": "Pick a location on the map first",
+    "dragHint": "Drag the marker to move the station",
+    "stationCreated": "Station \"{{name}}\" created",
+    "stationUpdated": "Station \"{{name}}\" updated",
+    "stationDeleted": "Station \"{{name}}\" deleted"
+  },
+  "usersPage": {
+    "editUser": "Edit user",
+    "deleteUser": "Delete user",
+    "deleteUserConfirm": "Are you sure you want to delete \"{{email}}\"? This cannot be undone.",
+    "createdAt": "Created",
+    "resetPassword": "Reset password (optional)",
+    "resetPasswordPlaceholder": "Leave empty to keep the current password",
+    "cannotDeleteSelf": "You cannot delete your own account",
+    "userUpdated": "User \"{{email}}\" updated",
+    "userDeleted": "User \"{{email}}\" deleted"
+  },
+  "routesPage": {
+    "createRoute": "Create Route",
+    "createLine": "Create new line",
+    "createLineSubtitle": "A line groups a route and its stations",
+    "lineName": "Line name",
+    "lineNamePlaceholder": "e.g. Line 14",
+    "lineCreated": "Line \"{{name}}\" created"
   },
   "admin": {
     "dashboard": "Dashboard",
@@ -28,6 +95,8 @@
     "stations": "Stations",
     "buses": "Buses",
     "users": "Users",
+    "profile": "Profile",
+    "register": "Create User",
     "toggle": "Toggle",
     "language": "Language",
     "theme": "Theme",
@@ -35,12 +104,17 @@
     "delete": "Delete",
     "edit": "Edit",
     "add": "Add",
+    "cancel": "Cancel",
     "name": "Name",
     "action": "Action",
-    "viewRoute": "View Route"
+    "viewRoute": "View Route",
+    "noResults": "Nothing here yet"
   },
   "errors": {
     "isRequired": "{{field}} is required",
-    "passwordsDoNotMatch": "Passwords do not match"
+    "passwordsDoNotMatch": "Passwords do not match",
+    "invalidEmail": "Please enter a valid email address",
+    "passwordTooShort": "Password must be at least {{count}} characters",
+    "nameTooShort": "Name must be at least {{count}} characters"
   }
 }

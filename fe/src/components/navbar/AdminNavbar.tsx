@@ -1,11 +1,9 @@
 import onTimeDark from "@/assets/onTime-dark.svg";
 import onTimeLight from "@/assets/onTime-light.svg";
-import busesSvg from "@/assets/buses.svg";
-import linesSvg from "@/assets/lines.svg";
+import dashboardSvg from "@/assets/dashboard.svg";
 import routesSvg from "@/assets/routes.svg";
 import stationsSvg from "@/assets/stations.svg";
 import usersSvg from "@/assets/users.svg";
-import dashboardSvg from "@/assets/dashboard.svg";
 import { useThemeContext } from "@/components/contexts/ThemeContextProvider";
 import { NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -42,8 +40,8 @@ const AdminNavbar = () => {
     {
       labelKey: "admin.dashboard",
       tooltipKey: "admin.dashboard",
-      to: appPaths.adminDashboard,
       iconSvg: dashboardSvg,
+      to: appPaths.adminDashboard,
     },
     {
       labelKey: "admin.routes",
@@ -55,9 +53,14 @@ const AdminNavbar = () => {
       labelKey: "admin.stations",
       tooltipKey: "admin.stations",
       iconSvg: stationsSvg,
+      to: appPaths.adminStations,
     },
-    { labelKey: "admin.buses", tooltipKey: "admin.buses", iconSvg: busesSvg },
-    { labelKey: "admin.users", tooltipKey: "admin.users", iconSvg: usersSvg },
+    {
+      labelKey: "admin.users",
+      tooltipKey: "admin.users",
+      iconSvg: usersSvg,
+      to: appPaths.adminUsers,
+    },
   ];
 
   return (

@@ -2,7 +2,6 @@ import {
   Source,
   Layer,
   type MapLayerMouseEvent,
-  type MarkerEvent,
 } from "@vis.gl/react-maplibre";
 import type { FeatureCollection, LineString } from "geojson";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -67,9 +66,11 @@ const ManageMap = () => {
     coord: BaseCoordinates[],
     waypoints: BaseCoordinates[],
   ) => {
+    // Persist exactly what is on screen: sequential order_index, since the
+    // backend returns points sorted by it.
     const routeData = {
-      routes: coord,
-      waypoints: waypoints,
+      routes: coord.map((p, i) => ({ ...p, order_index: i })),
+      waypoints: waypoints.map((w, i) => ({ ...w, order_index: i })),
     }
     createRoute({
       lineId: id!,
@@ -237,9 +238,13 @@ const ManageMap = () => {
     }));
 
     if (updateType === "append") {
-      setCoord((prev) =>
-        prev.length === 0 ? newSegment : [...prev, ...newSegment.slice(1)],
-      );
+      // Re-index the merged list: each fetched segment starts at 0, and the
+      // backend sorts by order_index, so duplicates would scramble the line.
+      setCoord((prev) => {
+        const merged =
+          prev.length === 0 ? newSegment : [...prev, ...newSegment.slice(1)];
+        return merged.map((p, i) => ({ ...p, order_index: i }));
+      });
     } else {
       setCoord(newSegment);
     }

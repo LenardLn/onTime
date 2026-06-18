@@ -24,6 +24,7 @@ def register(data: Register, db: Session = Depends(get_db)):
     user = User(
         email=data.email,
         password=hash_password(data.password),
+        roles=data.role,
         created_at=datetime.now()
     )
 

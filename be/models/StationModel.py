@@ -27,11 +27,12 @@ class Station(BaseModel):
 
 class StationCreate(BaseModel):
     name: str
-    station_id: int
     line_id: int
     lat: float
     long: float
-    order_index: int
+    # Auto-assigned by the backend when omitted.
+    station_id: Optional[int] = None
+    order_index: Optional[int] = None
 
 
 class StationUpdate(BaseModel):

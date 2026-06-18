@@ -1,10 +1,16 @@
 from fastapi import APIRouter
+import math
 import subprocess
 import sys
+from datetime import datetime, timedelta
 from pathlib import Path
 from db import SessionLocal
 from sqlalchemy import text
 from fastapi import Query
+import pytz
+
+from simulation.geo import distance_m
+from models.errors.Errors import RouteNotFoundError, StationNotFoundError
 
 router = APIRouter(
     prefix="/simulation",
@@ -69,15 +75,30 @@ def stop_simulation():
     
 @router.get("/live")
 def get_live_buses(
-    line_id: int | None = Query(
-        default=None
-    )
+    line_id: int | None = Query(default=None),
+    max_age_seconds: int | None = Query(default=None),
 ):
     db = SessionLocal()
 
-    if line_id:
+    line_filter = "WHERE line_id = :line_id" if line_id else ""
 
-        query = """
+    # The freshness window is applied to each bus's *latest* row, so a bus
+    # that stopped reporting disappears instead of showing its last position.
+    # It is symmetric (now ± window) because the simulator writes a simulated
+    # clock that drifts ahead of real time: in live (filtered) mode those
+    # leftover rows must be hidden too. `time` is naive Europe/Bucharest,
+    # matching what /locations stores.
+    freshness_filter = ""
+    params: dict = {"line_id": line_id} if line_id else {}
+    if max_age_seconds:
+        now = datetime.now(pytz.timezone("Europe/Bucharest")).replace(tzinfo=None)
+        window = timedelta(seconds=max_age_seconds)
+        freshness_filter = "WHERE latest.time BETWEEN :oldest AND :newest"
+        params["oldest"] = now - window
+        params["newest"] = now + window
+
+    query = f"""
+    SELECT * FROM (
         SELECT DISTINCT ON (bus_id)
             bus_id,
             bus_name,
@@ -87,41 +108,218 @@ def get_live_buses(
             vel,
             time
         FROM bus_locations
-        WHERE line_id = :line_id
+        {line_filter}
         ORDER BY
             bus_id,
             id DESC
-        """
+    ) latest
+    {freshness_filter}
+    """
 
-        result = db.execute(
-            text(query),
-            {
-                "line_id": line_id
-            }
-        )
-
-    else:
-
-        query = """
-        SELECT DISTINCT ON (bus_id)
-            bus_id,
-            bus_name,
-            line_id,
-            lat,
-            lon,
-            vel,
-            time
-        FROM bus_locations
-        ORDER BY
-            bus_id,
-            id DESC
-        """
-
-        result = db.execute(
-            text(query)
-        )
+    result = db.execute(text(query), params)
 
     return [
         dict(row._mapping)
         for row in result
     ]
+
+# --- Closest approaching bus ------------------------------------------------
+# A bus is "closest" by its forward distance ALONG the route to the station,
+# not by straight-line distance: a bus that just passed the station is meters
+# away but a whole loop from coming back.
+
+# Real writers (phone app, simulator) insert one row per bus every ~5 seconds,
+# so speed is estimated from the displacement between consecutive samples.
+_SAMPLE_INTERVAL_S = 5.0
+# A bus is considered moving with a known heading only after ~8 m of travel
+# across its recent samples; below that GPS jitter dominates.
+_MIN_HEADING_DISPLACEMENT_M = 8.0
+
+
+def _local_vector(a, b):
+    """Flat-earth vector (meters east, meters north) from point a to b."""
+    ref = math.radians(a[0])
+    dx = (b[1] - a[1]) * 111320 * math.cos(ref)
+    dy = (b[0] - a[0]) * 110540
+    return dx, dy
+
+
+def _heading_vector(points):
+    """Unit direction of travel from the oldest to the newest sample."""
+    dx, dy = _local_vector(points[0], points[-1])
+    norm = math.hypot(dx, dy)
+    if norm < _MIN_HEADING_DISPLACEMENT_M:
+        return None
+    return dx / norm, dy / norm
+
+
+def _route_direction(route, i):
+    """Unit direction of the route around point i."""
+    a = route[max(i - 1, 0)]
+    b = route[min(i + 1, len(route) - 1)]
+    dx, dy = _local_vector(a, b)
+    norm = math.hypot(dx, dy) or 1.0
+    return dx / norm, dy / norm
+
+
+def _candidate_clusters(route, point, slack_m=40, index_gap=5):
+    """Indices of the route points nearest to `point`, one per pass.
+
+    An out-and-back route passes the same street twice, so the near-minimum
+    distances form several clusters of consecutive indices (one per leg).
+    Returns one representative index per cluster plus all distances."""
+    dists = [distance_m(point, rp) for rp in route]
+    d_min = min(dists)
+    candidates = [i for i, d in enumerate(dists) if d <= d_min + slack_m]
+
+    clusters = []
+    current = [candidates[0]]
+    for i in candidates[1:]:
+        if i - current[-1] <= index_gap:
+            current.append(i)
+        else:
+            clusters.append(current)
+            current = [i]
+    clusters.append(current)
+
+    return [min(c, key=lambda i: dists[i]) for c in clusters], dists
+
+
+def _project_bus(route, point, heading):
+    """Snap a bus to the route leg whose direction matches its heading.
+
+    This is what tells apart the two sides of the road on an out-and-back
+    route. Without a usable heading (bus standing still) fall back to the
+    nearest point."""
+    reps, dists = _candidate_clusters(route, point)
+    if heading is None or len(reps) == 1:
+        return min(reps, key=lambda i: dists[i])
+    return max(
+        reps,
+        key=lambda i: (
+            _route_direction(route, i)[0] * heading[0]
+            + _route_direction(route, i)[1] * heading[1]
+        ),
+    )
+
+
+def _assign_station_indices(route, stations):
+    """Map every station of the line to a single route index.
+
+    Stations are walked in order_index order and each must land further along
+    the route than the previous one, which picks the correct leg for stations
+    sitting between the two directions of travel."""
+    assigned = {}
+    prev = -1
+    for st in stations:
+        reps, dists = _candidate_clusters(route, (st.lat, st.long))
+        ahead = [i for i in reps if i > prev]
+        pool = ahead if ahead else reps
+        idx = min(pool, key=lambda i: dists[i])
+        assigned[st.id] = idx
+        prev = idx
+    return assigned
+
+
+@router.get("/closest-bus")
+def get_closest_bus(
+    line_id: int = Query(...),
+    station_id: int = Query(...),
+    max_age_seconds: int | None = Query(default=None),
+):
+    db = SessionLocal()
+
+    route_rows = db.execute(
+        text(
+            "SELECT lat, long FROM routes "
+            "WHERE line_id = :line_id ORDER BY order_index"
+        ),
+        {"line_id": line_id},
+    ).all()
+    route = [(r.lat, r.long) for r in route_rows]
+    if len(route) < 2:
+        raise RouteNotFoundError()
+
+    station_rows = db.execute(
+        text(
+            "SELECT id, lat, long, order_index FROM stations "
+            "WHERE line_id = :line_id ORDER BY order_index"
+        ),
+        {"line_id": line_id},
+    ).all()
+    if not any(s.id == station_id for s in station_rows):
+        raise StationNotFoundError()
+
+    # Cumulative distance along the route, for forward-distance arithmetic.
+    cum = [0.0]
+    for a, b in zip(route, route[1:]):
+        cum.append(cum[-1] + distance_m(a, b))
+    total_length = cum[-1] or 1.0
+
+    target_idx = _assign_station_indices(route, station_rows)[station_id]
+
+    # Last 3 samples per bus: enough to derive the direction of travel.
+    rows = db.execute(
+        text(
+            """
+            SELECT bus_id, bus_name, lat, lon, time, rn FROM (
+                SELECT bus_id, bus_name, lat, lon, time,
+                       ROW_NUMBER() OVER (
+                           PARTITION BY bus_id ORDER BY id DESC
+                       ) AS rn
+                FROM bus_locations
+                WHERE line_id = :line_id
+            ) t WHERE rn <= 3
+            """
+        ),
+        {"line_id": line_id},
+    ).all()
+
+    samples_by_bus: dict = {}
+    for r in rows:
+        samples_by_bus.setdefault(r.bus_id, []).append(r)
+
+    freshness_window = None
+    if max_age_seconds:
+        now = datetime.now(pytz.timezone("Europe/Bucharest")).replace(tzinfo=None)
+        freshness_window = (
+            now - timedelta(seconds=max_age_seconds),
+            now + timedelta(seconds=max_age_seconds),
+        )
+
+    best = None
+    for samples in samples_by_bus.values():
+        samples.sort(key=lambda r: r.rn)  # rn=1 is the newest sample
+        newest = samples[0]
+
+        if freshness_window and not (
+            freshness_window[0] <= newest.time <= freshness_window[1]
+        ):
+            continue
+
+        points = [(s.lat, s.lon) for s in reversed(samples)]  # oldest -> newest
+        heading = _heading_vector(points) if len(points) >= 2 else None
+
+        bus_idx = _project_bus(route, points[-1], heading)
+        forward_m = cum[target_idx] - cum[bus_idx]
+        if forward_m < 0:
+            forward_m += total_length  # bus already passed: full loop around
+
+        speed_mps = 6.0  # fallback ≈ city bus average incl. stops
+        if len(points) >= 2:
+            step = distance_m(points[-2], points[-1]) / _SAMPLE_INTERVAL_S
+            if step > 0.5:
+                speed_mps = min(max(step, 2.0), 20.0)
+
+        if best is None or forward_m < best["distance_m"]:
+            best = {
+                "bus_id": newest.bus_id,
+                "bus_name": newest.bus_name,
+                "lat": newest.lat,
+                "lon": newest.lon,
+                "distance_m": round(forward_m),
+                "eta_seconds": round(forward_m / speed_mps),
+                "heading_known": heading is not None,
+            }
+
+    return {"bus": best}

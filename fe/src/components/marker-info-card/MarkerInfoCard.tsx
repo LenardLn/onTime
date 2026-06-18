@@ -8,7 +8,7 @@ interface MarkerInfoCardProps {
   marker?: BaseCoordinates
 }
 
-const MarkerInfoCard = ({ name, marker }: MarkerInfoCardProps) => {
+const MarkerInfoCard = ({ marker }: MarkerInfoCardProps) => {
   const { setMode, setJustClosed, setSelectedWaypoint } = useMapEditorContext();
 
   const cardRef = useRef<HTMLDivElement>(null);

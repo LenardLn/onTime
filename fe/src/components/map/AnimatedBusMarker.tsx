@@ -21,13 +21,14 @@ const metersBetween = (a: LatLon, b: LatLon) => {
 type Props = {
   bus: LiveBus;
   onClick?: (bus: LiveBus) => void;
+  highlighted?: boolean;
 };
 
 /**
  * Bus marker that smoothly interpolates from its previous position to the latest
  * polled position, but snaps instantly when the jump is too large.
  */
-const AnimatedBusMarker = ({ bus, onClick }: Props) => {
+const AnimatedBusMarker = ({ bus, onClick, highlighted = false }: Props) => {
   const posRef = useRef<LatLon>({ lat: bus.lat, lon: bus.lon });
   const [pos, setPos] = useState(posRef.current);
   const rafRef = useRef<number | null>(null);
@@ -71,11 +72,19 @@ const AnimatedBusMarker = ({ bus, onClick }: Props) => {
         onClick?.(bus);
       }}
     >
-      <img
-        src={movingBusIcon}
-        alt={bus.bus_name}
-        className="size-8 shrink-0 cursor-pointer"
-      />
+      <div className="relative flex items-center justify-center">
+        {highlighted && (
+          <>
+            <span className="absolute size-12 animate-ping rounded-full bg-green-500/40" />
+            <span className="absolute size-11 rounded-full border-2 border-green-500" />
+          </>
+        )}
+        <img
+          src={movingBusIcon}
+          alt={bus.bus_name}
+          className="relative size-8 shrink-0 cursor-pointer"
+        />
+      </div>
     </Marker>
   );
 };
