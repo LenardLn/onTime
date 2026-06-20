@@ -14,9 +14,9 @@ const PageTitle = () => {
 
   const segments = location.pathname.split("/").filter(Boolean);
 
-  // Build breadcrumbs from the URL while dropping segments that shouldn't be
-  // shown: the "admin" base (it duplicated "Dashboard") and numeric ids.
-  // e.g. /admin/routes/8/edit -> Routes (clickable) > Edit (current).
+  // Build breadcrumbs from the URL while dropping only the "admin" base (it
+  // duplicated "Dashboard"). Ids stay so the trail reads e.g.
+  // /admin/routes/9/edit -> Lines (clickable) > 9 (clickable) > Edit (current).
   const crumbs = segments
     .map((segment, index) => ({
       segment: decodeURIComponent(segment),
@@ -24,7 +24,6 @@ const PageTitle = () => {
     }))
     .filter(({ segment }, index) => {
       if (index === 0 && segment === "admin") return false;
-      if (/^\d+$/.test(segment)) return false;
       return true;
     });
 
@@ -38,10 +37,15 @@ const PageTitle = () => {
     alt: "Back Button",
   };
 
-  const label = (segment: string) =>
-    t(`admin.${segment}`, {
+  // The "routes" section is the lines listing, so label it "Lines" in the trail.
+  const segmentOverrides: Record<string, string> = { routes: "lines" };
+
+  const label = (segment: string) => {
+    const key = segmentOverrides[segment] ?? segment;
+    return t(`admin.${key}`, {
       defaultValue: segment.charAt(0).toUpperCase() + segment.slice(1),
     });
+  };
 
   return (
     <div className="flex gap-4 items-center">

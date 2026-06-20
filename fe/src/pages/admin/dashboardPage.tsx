@@ -532,39 +532,6 @@ const DashboardPage = () => {
           </ChartContainer>
         </ChartCard>
 
-        <ChartCard
-          title={t("dashboard.etaPredictions")}
-          description={t("dashboard.etaPredictionsDesc")}
-          metricKey="eta_predictions"
-          className="2xl:col-span-2"
-        >
-          <ChartContainer
-            config={
-              {
-                eta_minutes: {
-                  label: t("dashboard.etaMinutes"),
-                  color: CHART_COLORS[1],
-                },
-              } satisfies ChartConfig
-            }
-            className="aspect-auto h-[420px] w-full"
-          >
-            <BarChart data={metrics.eta_predictions} layout="vertical">
-              <CartesianGrid horizontal={false} />
-              <XAxis type="number" tickLine={false} axisLine={false} tick={axisTick} />
-              <YAxis
-                type="category"
-                dataKey="bus_name"
-                tickLine={false}
-                axisLine={false}
-                tick={axisTick}
-                width={90}
-              />
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar dataKey="eta_minutes" fill="var(--color-eta_minutes)" radius={6} />
-            </BarChart>
-          </ChartContainer>
-        </ChartCard>
       </div>
     </div>
   );

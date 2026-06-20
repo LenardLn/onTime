@@ -5,8 +5,10 @@ import PageLoader from "@/components/loaders/PageLoader";
 import { appPaths } from "@/entities/enums/appPaths";
 import useLines from "@/hooks/admin/tanstack/useLines";
 import useErrorMessage from "@/hooks/admin/useFetchSideEffects";
+import { useTranslation } from "react-i18next";
 
 const RoutePage = () => {
+  const { t } = useTranslation();
   const { data: lines, isLoading, isError, error } = useLines();
   const columns = useLineColumns({
     getDetailPath: (id) => appPaths.adminRouteDetails(id),
@@ -24,7 +26,11 @@ const RoutePage = () => {
       <div className="flex justify-end">
         <CreateLineDialog />
       </div>
-      <DataTable columns={columns} data={lines ?? []} />
+      <DataTable
+        columns={columns}
+        data={lines ?? []}
+        searchPlaceholder={t("admin.search")}
+      />
     </div>
   );
 };

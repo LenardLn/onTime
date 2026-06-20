@@ -1,4 +1,4 @@
-from endpoints import locations, register, lines, routes, stations, login, me, logout, lineStations, simulation, users, analytics
+from endpoints import locations, register, lines, routes, stations, login, me, logout, lineStations, simulation, users, analytics, buses
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -51,3 +51,4 @@ app.include_router(lineStations.router)
 app.include_router(simulation.router)
 app.include_router(users.router)
 app.include_router(analytics.router)
+app.include_router(buses.router)

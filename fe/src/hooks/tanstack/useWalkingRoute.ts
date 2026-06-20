@@ -21,6 +21,7 @@ const useWalkingRoute = (from?: LatLng | null, to?: LatLng | null) => {
     queryFn: () => getWalkingRoute(from!, to!),
     enabled: Boolean(from && to),
     refetchInterval: 5000,
+    refetchOnWindowFocus: true,
   });
 };
 

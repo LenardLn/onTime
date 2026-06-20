@@ -10,6 +10,7 @@ export const appPaths = {
   adminCreateRoute: (id: number | string) => `/admin/routes/${id}/create`,
   adminEditRoute: (id: number | string) => `/admin/routes/${id}/edit`,
   adminStations: "/admin/stations",
+  adminBuses: "/admin/buses",
   adminUsers: "/admin/users",
   adminStationDetails: (stationId: number | string) =>
     `/admin/stations/${stationId}`,

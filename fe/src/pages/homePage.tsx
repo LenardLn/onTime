@@ -71,9 +71,12 @@ const HomePage = () => {
     location,
     targetStation ? { lat: targetStation.lat, lon: targetStation.long } : null,
   );
+  // Estimate the walk from the route distance at an average walking pace
+  // (~5 km/h) rather than trusting the routing provider's own duration.
+  const AVG_WALKING_SPEED_MPS = 1.4; // ≈ 5 km/h
   const walkingMinutes =
-    walking?.durationSec != null
-      ? Math.max(1, Math.round(walking.durationSec / 60))
+    walking?.distanceM != null
+      ? Math.max(1, Math.round(walking.distanceM / AVG_WALKING_SPEED_MPS / 60))
       : null;
 
   const handleSelectStation = (station: Station) => {
@@ -99,6 +102,8 @@ const HomePage = () => {
           userLocation={location}
           walkingRoute={walking?.coordinates}
           onSelectStation={handleSelectStation}
+          onDeselectStation={() => setTargetStation(null)}
+          selectedStationId={targetStation?.id}
           highlightBusId={closestBus?.bus_id}
         />
       </div>
@@ -115,30 +120,13 @@ const HomePage = () => {
       />
 
       {targetStation && (
-        <div className="absolute bottom-8 left-1/2 z-30 flex w-[min(92vw,28rem)] -translate-x-1/2 items-start gap-3 rounded-2xl border bg-background/95 px-5 py-4 shadow-xl backdrop-blur">
+        <div className="absolute bottom-8 left-1/2 z-30 flex w-[min(92vw,28rem)] -translate-x-1/2 items-start gap-3 rounded-2xl border bg-popover/95 text-popover-foreground px-5 py-4 shadow-xl backdrop-blur">
           <div className="min-w-0 flex-1 space-y-1.5">
-            <p className="text-lg font-semibold">{targetStation.name}</p>
+            <p className="text-2xl font-semibold">{targetStation.name}</p>
 
-            {/* Walking time to the station */}
-            {walkingMinutes != null ? (
-              <p className="flex items-center gap-2 text-base">
-                <Footprints className="size-5 shrink-0 text-primary" />
-                <span>
-                  <span className="font-semibold">
-                    {t("home.walkMinutes", { minutes: walkingMinutes })}
-                  </span>{" "}
-                  · {formatDistance(walking?.distanceM ?? 0)}
-                </span>
-              </p>
-            ) : location ? (
-              <p className="text-base text-muted-foreground">
-                {t("home.walkingCalculating")}
-              </p>
-            ) : null}
-
-            {/* Time until the next bus reaches this station */}
+            {/* Primary prediction: time until the next bus reaches this station */}
             {closestBus ? (
-              <p className="flex items-center gap-2 text-base">
+              <p className="flex items-center gap-2 text-xl">
                 <BusFront className="size-5 shrink-0 text-primary" />
                 <span>
                   <span className="font-semibold">
@@ -154,11 +142,28 @@ const HomePage = () => {
                 </span>
               </p>
             ) : (
-              <p className="flex items-center gap-2 text-base text-muted-foreground">
+              <p className="flex items-center gap-2 text-xl text-muted-foreground">
                 <BusFront className="size-5 shrink-0" />
                 {t("home.noBusApproaching")}
               </p>
             )}
+
+            {/* Secondary: estimated time to walk to the station */}
+            {walkingMinutes != null ? (
+              <p className="flex items-center gap-2 text-xl">
+                <Footprints className="size-5 shrink-0 text-primary" />
+                <span>
+                  <span className="font-semibold">
+                    {t("home.walkMinutes", { minutes: walkingMinutes })}
+                  </span>{" "}
+                  · {formatDistance(walking?.distanceM ?? 0)}
+                </span>
+              </p>
+            ) : location ? (
+              <p className="text-xl text-muted-foreground">
+                {t("home.walkingCalculating")}
+              </p>
+            ) : null}
           </div>
           <button
             onClick={() => setTargetStation(null)}

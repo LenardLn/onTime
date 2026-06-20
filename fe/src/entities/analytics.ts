@@ -28,14 +28,6 @@ export type AnalyticsMetrics = {
   activity_by_hour: { hour: number; records: number }[];
   activity_by_weekday: { weekday: string; records: number }[];
   active_buses_by_hour: { hour: number; active_buses: number }[];
-  eta_predictions: {
-    bus_id: number;
-    bus_name: string;
-    line_id: number;
-    nearest_station: string;
-    speed: number;
-    eta_minutes: number | null;
-  }[];
 };
 
 export type AnalyticsMetricKey = keyof AnalyticsMetrics;

@@ -1,8 +1,4 @@
-import {
-  Source,
-  Layer,
-  type MapLayerMouseEvent,
-} from "@vis.gl/react-maplibre";
+import { Source, Layer, type MapLayerMouseEvent } from "@vis.gl/react-maplibre";
 import type { FeatureCollection, LineString } from "geojson";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { BaseCoordinates } from "@/helpers/baseCoordinates";
@@ -11,14 +7,20 @@ import useCreateRoute from "@/hooks/admin/tanstack/useCreateRoute";
 import { Button } from "../shadcn/button";
 import axios from "axios";
 import { useLocation, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import useRoute from "@/hooks/admin/tanstack/useRoute";
 import type { RouteUpdateType, Station } from "@/entities/route";
 import { BusStation } from "../station/BusStation";
 import { Waypoint } from "../waypoint/Waypoint";
 import BaseMap from "./BaseMap";
-import { MapEditModeEnum, useMapEditorContext } from "../contexts/mapEditorContext";
+import {
+  MapEditModeEnum,
+  useMapEditorContext,
+} from "../contexts/mapEditorContext";
 
 const ManageMap = () => {
+  const { t } = useTranslation();
   const location = useLocation();
   const { id } = useParams();
 
@@ -26,8 +28,14 @@ const ManageMap = () => {
   const [coord, setCoord] = useState<BaseCoordinates[]>([]);
   const [stations, setStations] = useState<Station[]>([]);
 
-  const { justClosed, setJustClosed, mode, setMode, selectedWaypoint, setSelectedWaypoint } =
-    useMapEditorContext();
+  const {
+    justClosed,
+    setJustClosed,
+    mode,
+    setMode,
+    selectedWaypoint,
+    setSelectedWaypoint,
+  } = useMapEditorContext();
 
   const routeUpdateTypeRef = useRef<RouteUpdateType>("append");
 
@@ -39,9 +47,10 @@ const ManageMap = () => {
 
   const isEdit = useMemo(() => location.pathname.includes("/edit"), []);
 
-  const isInsertionMode = mode === MapEditModeEnum.InsertBefore || mode === MapEditModeEnum.InsertAfter;
-  const isDeleteNode = mode === MapEditModeEnum.Delete
-
+  const isInsertionMode =
+    mode === MapEditModeEnum.InsertBefore ||
+    mode === MapEditModeEnum.InsertAfter;
+  const isDeleteNode = mode === MapEditModeEnum.Delete;
 
   const {
     data,
@@ -66,16 +75,32 @@ const ManageMap = () => {
     coord: BaseCoordinates[],
     waypoints: BaseCoordinates[],
   ) => {
-    // Persist exactly what is on screen: sequential order_index, since the
-    // backend returns points sorted by it.
+    const lineId = Number(id);
+    // Persist exactly what's on screen with sequential order_index (the backend
+    // sorts by it). Every point needs line_id — the GET response omits it, so
+    // set it explicitly here or the POST 422s on edit.
     const routeData = {
-      routes: coord.map((p, i) => ({ ...p, order_index: i })),
-      waypoints: waypoints.map((w, i) => ({ ...w, order_index: i })),
+      routes: coord.map((p, i) => ({
+        lat: p.lat,
+        long: p.long,
+        line_id: lineId,
+        order_index: i,
+      })),
+      waypoints: waypoints.map((w, i) => ({
+        lat: w.lat,
+        long: w.long,
+        line_id: lineId,
+        order_index: i,
+      })),
+    };
+    try {
+      await createRoute({ lineId: id!, routeData });
+      toast.success(
+        t(isEdit ? "routesPage.routeUpdated" : "routesPage.routeCreated"),
+      );
+    } catch (err: any) {
+      toast.warning(t(err?.message ?? err));
     }
-    createRoute({
-      lineId: id!,
-      routeData
-    });
   };
 
   const handleInsertWaypoint = (e: MapLayerMouseEvent) => {
@@ -91,7 +116,9 @@ const ManageMap = () => {
       if (selectedIndex === -1) return;
 
       const insertIndex =
-        mode === MapEditModeEnum.InsertBefore ? selectedIndex : selectedIndex + 1;
+        mode === MapEditModeEnum.InsertBefore
+          ? selectedIndex
+          : selectedIndex + 1;
 
       const newMarker = {
         lat,
@@ -142,7 +169,6 @@ const ManageMap = () => {
 
     setWaypoints((prev) => [...prev, newMarker]);
   };
-
 
   // more optimised geoapify stuff
 
@@ -213,9 +239,9 @@ const ManageMap = () => {
     const coordinates =
       updateType === "append"
         ? waypoints
-          .slice(-2)
-          .map((c) => `${c.lat},${c.long}`)
-          .join("|")
+            .slice(-2)
+            .map((c) => `${c.lat},${c.long}`)
+            .join("|")
         : waypoints.map((c) => `${c.lat},${c.long}`).join("|");
 
     const response = await axios.get(
@@ -253,12 +279,13 @@ const ManageMap = () => {
   useEffect(() => {
     if (waypoints.length < 2) return;
 
-    // this prevents connection of the first 2 waypoints when creating a map
-    // if (!initialLoadDone.current) {
-    //   initialLoadDone.current = true;
-    //   return;
-    // }
-
+    // When editing, the first render already holds the saved route in `coord`.
+    // Skip that first draw, otherwise drawBusRoute appends a stray segment on
+    // top of the loaded line ("sky lines"). Later edits draw normally.
+    if (isEdit && !initialLoadDone.current) {
+      initialLoadDone.current = true;
+      return;
+    }
 
     const timeout = setTimeout(() => {
       drawBusRoute();
@@ -334,13 +361,12 @@ const ManageMap = () => {
 
   const handleDeleteWaypoint = (selectedWaypoint: BaseCoordinates) => {
     setWaypoints((prev) => {
-
       const remainingWaypoints = prev.filter(
         (waypoint) =>
           !(
             waypoint.lat === selectedWaypoint?.lat &&
             waypoint.long === selectedWaypoint?.long
-          )
+          ),
       );
 
       const reorderedWaypoints = remainingWaypoints.map((waypoint) => ({
@@ -350,20 +376,19 @@ const ManageMap = () => {
             ? waypoint.order_index - 1
             : waypoint.order_index,
       }));
-      return reorderedWaypoints
+      return reorderedWaypoints;
     });
 
-    setSelectedWaypoint(null)
-    setMode(MapEditModeEnum.Idle)
-    setUpdate("full")
-  }
+    setSelectedWaypoint(null);
+    setMode(MapEditModeEnum.Idle);
+    setUpdate("full");
+  };
 
   useEffect(() => {
     if (isDeleteNode && selectedWaypoint) {
-      handleDeleteWaypoint(selectedWaypoint)
+      handleDeleteWaypoint(selectedWaypoint);
     }
-  }, [mode])
-
+  }, [mode]);
 
   return (
     <>
@@ -372,7 +397,7 @@ const ManageMap = () => {
           className="z-100"
           onClick={async () => await handleCreateRoute(coord, waypoints)}
         >
-          Create Route test
+          {isEdit ? t("routesPage.updateRoute") : t("routesPage.createRoute")}
         </Button>
       </div>
       <BaseMap

@@ -286,6 +286,7 @@ const StationsPage = () => {
         columns={columns}
         data={data?.stations ?? []}
         pageSize={10}
+        searchPlaceholder={t("admin.search")}
       />
 
       {/* Add station: pick the spot on the map, then name it */}

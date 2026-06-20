@@ -120,6 +120,11 @@ async def create_route(line_id: int, data: RouteCreatePayload, db: Session = Dep
     ]
 
     try:
+        # Replace the line's route: editing posts the full set, so clear the
+        # existing rows first instead of appending duplicates.
+        db.query(RouteDB).filter(RouteDB.line_id == line_id).delete()
+        db.query(RouteWaypointDB).filter(
+            RouteWaypointDB.line_id == line_id).delete()
         db.query(LineDB).filter(
             LineDB.id == line_id).update({"has_route": True})
         db.add_all(route_rows)

@@ -136,6 +136,15 @@ class BusNotFoundError(AppError):
         )
 
 
+class BusAlreadyExistsError(AppError):
+    def __init__(self):
+        super().__init__(
+            message="A bus with this name already exists",
+            error_code="errors.bus_exists",
+            status_code=409
+        )
+
+
 class NotADriverError(AppError):
     def __init__(self):
         super().__init__(

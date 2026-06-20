@@ -25,7 +25,7 @@ _ANALYTICS_DIR = os.path.join(os.path.dirname(__file__), "analytics")
 if _ANALYTICS_DIR not in sys.path:
     sys.path.append(_ANALYTICS_DIR)
 
-from data_loader import load_bus_locations, load_stations  # noqa: E402
+from data_loader import load_bus_locations  # noqa: E402
 from cleaning import clean_data  # noqa: E402
 from route_analysis import (  # noqa: E402
     trips_per_route,
@@ -45,7 +45,6 @@ from temporal_analysis import (  # noqa: E402
     route_activity_share,
     speed_by_period,
 )
-from eta_analysis import eta_for_all_buses  # noqa: E402
 
 
 _CACHE_TTL = 600  # seconds
@@ -69,7 +68,6 @@ METRICS = {
     "activity_by_hour": "Activity by hour",
     "activity_by_weekday": "Activity by weekday",
     "active_buses_by_hour": "Active buses by hour",
-    "eta_predictions": "ETA predictions",
 }
 
 _WEEKDAY_ORDER = [
@@ -90,7 +88,7 @@ def _records(df: pd.DataFrame) -> list:
     return json.loads(df.to_json(orient="records"))
 
 
-def _compute_frames(df: pd.DataFrame, stations_df: pd.DataFrame) -> dict:
+def _compute_frames(df: pd.DataFrame) -> dict:
     """Compute every dashboard DataFrame from a single cleaned snapshot."""
     frames: dict = {}
 
@@ -142,11 +140,6 @@ def _compute_frames(df: pd.DataFrame, stations_df: pd.DataFrame) -> dict:
     frames["activity_by_weekday"] = weekday.sort_values("weekday")
 
     frames["active_buses_by_hour"] = active_buses_by_hour(df)
-
-    try:
-        frames["eta_predictions"] = eta_for_all_buses(df, stations_df)
-    except Exception:
-        frames["eta_predictions"] = pd.DataFrame()
 
     # Round numeric columns so the API returns tidy values.
     for key, frame in frames.items():
@@ -230,9 +223,8 @@ def _get_snapshot(force: bool = False) -> dict:
             return _cache
 
         df = clean_data(load_bus_locations())
-        stations_df = load_stations()
 
-        frames = _compute_frames(df, stations_df)
+        frames = _compute_frames(df)
         summary = _compute_summary(df, frames)
 
         _cache["frames"] = frames
