@@ -12,6 +12,7 @@ import RoutePage from "./pages/admin/routePages";
 import RouteDetailsPage from "./pages/admin/routeDetailsPage";
 import ManageRoutePage from "./pages/admin/manageRoutePage";
 import StationsPage from "./pages/admin/stationsPage";
+import BusesPage from "./pages/admin/busesPage";
 import UsersPage from "./pages/admin/usersPage";
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -55,6 +56,10 @@ const router = createBrowserRouter([
       {
         path: appPaths.adminStations,
         element: <StationsPage />,
+      },
+      {
+        path: appPaths.adminBuses,
+        element: <BusesPage />,
       },
       {
         path: appPaths.adminUsers,

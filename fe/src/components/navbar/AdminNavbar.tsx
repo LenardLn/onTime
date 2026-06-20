@@ -3,6 +3,7 @@ import onTimeLight from "@/assets/onTime-light.svg";
 import dashboardSvg from "@/assets/dashboard.svg";
 import routesSvg from "@/assets/routes.svg";
 import stationsSvg from "@/assets/stations.svg";
+import busesSvg from "@/assets/buses.svg";
 import usersSvg from "@/assets/users.svg";
 import { useThemeContext } from "@/components/contexts/ThemeContextProvider";
 import { NavLink } from "react-router-dom";
@@ -54,6 +55,12 @@ const AdminNavbar = () => {
       tooltipKey: "admin.stations",
       iconSvg: stationsSvg,
       to: appPaths.adminStations,
+    },
+    {
+      labelKey: "admin.buses",
+      tooltipKey: "admin.buses",
+      iconSvg: busesSvg,
+      to: appPaths.adminBuses,
     },
     {
       labelKey: "admin.users",

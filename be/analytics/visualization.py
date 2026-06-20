@@ -464,33 +464,3 @@ def records_per_day_chart(df):
     )
 
     plt.close()
-    
-    
-def eta_chart(df):
-
-    plt.figure(figsize=(12, 6))
-
-    plt.barh(
-        df["bus_name"],
-        df["eta_minutes"]
-    )
-
-    plt.title(
-        "Estimated Arrival Time"
-    )
-
-    plt.xlabel(
-        "Minutes"
-    )
-
-    plt.ylabel(
-        "Bus"
-    )
-
-    plt.tight_layout()
-
-    plt.savefig(
-        "exports/eta_predictions.png"
-    )
-
-    plt.close()

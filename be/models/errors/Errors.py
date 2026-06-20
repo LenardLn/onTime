@@ -136,6 +136,15 @@ class BusNotFoundError(AppError):
         )
 
 
+class BusAlreadyExistsError(AppError):
+    def __init__(self):
+        super().__init__(
+            message="A bus with this name already exists",
+            error_code="errors.bus_exists",
+            status_code=409
+        )
+
+
 class NotADriverError(AppError):
     def __init__(self):
         super().__init__(
@@ -169,4 +178,22 @@ class TooManyRequestsError(AppError):
             message="Too many attempts. Please wait and try again.",
             error_code="errors.too_many_requests",
             status_code=429
+        )
+
+
+class LineStationExistsError(AppError):
+    def __init__(self):
+        super().__init__(
+            message="Station is already attached to this line",
+            error_code="errors.line_station_exists",
+            status_code=409
+        )
+
+
+class LineStationNotFoundError(AppError):
+    def __init__(self):
+        super().__init__(
+            message="Line-station link not found",
+            error_code="errors.line_station_not_found",
+            status_code=404
         )

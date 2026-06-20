@@ -11,12 +11,7 @@ from route_analysis import (
 )
 
 from data_loader import (
-    load_bus_locations,
-    load_stations
-)
-
-from eta_analysis import (
-    eta_for_all_buses
+    load_bus_locations
 )
 
 from speed_analysis import (
@@ -56,8 +51,7 @@ from visualization import (
     speed_boxplot,
     speed_percentiles_chart,
     active_buses_by_hour_chart,
-    records_per_day_chart,
-    eta_chart
+    records_per_day_chart
 )
 
 from temporal_analysis import (
@@ -91,8 +85,6 @@ print("\nLoading data...\n")
 df = load_bus_locations()
 
 df = clean_data(df)
-
-stations_df = load_stations()
 
 print(
     f"Dataset loaded successfully: "
@@ -153,10 +145,6 @@ quietest_hour_df = quietest_hour(df)
 
 speed_period_df = speed_by_period(df)
 
-eta_df = eta_for_all_buses(
-    df,
-    stations_df
-)
 # ==================================================
 # Route Analysis
 # ==================================================
@@ -280,9 +268,6 @@ print("\n========== SPEED BY PERIOD ==========\n")
 
 print(speed_period_df)
 
-print("\n========== ETA PREDICTIONS ==========\n")
-
-print(eta_df)
 # ==================================================
 # Generate Charts
 # ==================================================
@@ -360,10 +345,6 @@ speed_by_bus_chart(
 speed_boxplot(df)
 
 speed_percentiles_chart(df)
-
-eta_chart(
-    eta_df
-)
 
 print(
     "\nCharts generated successfully "

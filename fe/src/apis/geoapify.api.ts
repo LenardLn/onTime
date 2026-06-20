@@ -2,14 +2,23 @@ import axios from "axios";
 
 export type LatLng = { lat: number; lon: number };
 
+export type WalkingRoute = {
+  /** Path as [lng, lat] pairs (GeoJSON order), ready for a MapLibre LineString. */
+  coordinates: [number, number][];
+  /** Estimated walking time in seconds (null if unavailable). */
+  durationSec: number | null;
+  /** Walking distance in metres (null if unavailable). */
+  distanceM: number | null;
+};
+
 /**
- * Walking route between two points via Geoapify. Returns the path as an array
- * of [lng, lat] pairs (GeoJSON order), ready to feed a MapLibre LineString.
+ * Walking route between two points via Geoapify, including the estimated time
+ * and distance so the UI can show "how long to walk to the station".
  */
 export const getWalkingRoute = async (
   from: LatLng,
   to: LatLng,
-): Promise<[number, number][]> => {
+): Promise<WalkingRoute> => {
   const key = import.meta.env.VITE_GEOAPIFY_KEY;
   const waypoints = `${from.lat},${from.lon}|${to.lat},${to.lon}`;
 
@@ -17,11 +26,19 @@ export const getWalkingRoute = async (
     `https://api.geoapify.com/v1/routing?waypoints=${waypoints}&mode=walk&apiKey=${key}`,
   );
 
-  const geometry = response.data.features?.[0]?.geometry;
-  if (!geometry) return [];
+  const feature = response.data.features?.[0];
+  const geometry = feature?.geometry;
+  if (!geometry) return { coordinates: [], durationSec: null, distanceM: null };
 
   // Geoapify returns LineString or MultiLineString; normalise to [lng,lat][].
-  return geometry.type === "MultiLineString"
-    ? (geometry.coordinates.flat() as [number, number][])
-    : (geometry.coordinates as [number, number][]);
+  const coordinates: [number, number][] =
+    geometry.type === "MultiLineString"
+      ? geometry.coordinates.flat()
+      : geometry.coordinates;
+
+  return {
+    coordinates,
+    durationSec: feature?.properties?.time ?? null,
+    distanceM: feature?.properties?.distance ?? null,
+  };
 };
