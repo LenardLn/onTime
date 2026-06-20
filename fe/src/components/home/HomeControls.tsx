@@ -67,7 +67,7 @@ const HomeControls = ({
           }
         >
           <option value="">{t("home.linePlaceholder")}</option>
-          {lines?.map((line) => (
+          {(Array.isArray(lines) ? lines : []).map((line) => (
             <option key={line.id} value={line.id}>
               {line.name}
             </option>

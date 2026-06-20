@@ -234,7 +234,12 @@ const BusesPage = () => {
         </p>
       )}
 
-      <DataTable columns={columns} data={buses ?? []} />
+      <DataTable
+        columns={columns}
+        data={buses ?? []}
+        pageSize={10}
+        searchPlaceholder={t("admin.search")}
+      />
 
       {/* Create bus dialog */}
       <Dialog

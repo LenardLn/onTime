@@ -38,6 +38,9 @@ interface MapComponentProps {
   userLocation?: { lat: number; lon: number } | null;
   walkingRoute?: [number, number][];
   onSelectStation?: (station: Station) => void;
+  onDeselectStation?: () => void;
+  /** Id of the station currently picked as the walking target, if any. */
+  selectedStationId?: number | string | null;
   highlightBusId?: number;
 }
 
@@ -49,6 +52,8 @@ const ViewMap = ({
   userLocation,
   walkingRoute,
   onSelectStation,
+  onDeselectStation,
+  selectedStationId,
   highlightBusId,
 }: MapComponentProps) => {
   const { t } = useTranslation();
@@ -282,17 +287,29 @@ const ViewMap = ({
             <span className="text-base font-semibold">
               {selectedStation.name}
             </span>
-            {onSelectStation && (
-              <Button
-                size="sm"
-                onClick={() => {
-                  onSelectStation(selectedStation);
-                  setSelectedStation(null);
-                }}
-              >
-                {t("home.select")}
-              </Button>
-            )}
+            {onSelectStation &&
+              (String(selectedStationId) === String(selectedStation.id) ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    onDeselectStation?.();
+                    setSelectedStation(null);
+                  }}
+                >
+                  {t("home.deselect")}
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    onSelectStation(selectedStation);
+                    setSelectedStation(null);
+                  }}
+                >
+                  {t("home.select")}
+                </Button>
+              ))}
           </div>
         </Popup>
       )}

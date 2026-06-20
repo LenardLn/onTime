@@ -85,10 +85,9 @@ for line_id in line_ids:
             }
         )
 
-while any(bus['completed_routes'] < 3 for bus in buses):
+# Run continuously until the /simulation/stop endpoint terminates this process.
+while True:
     for bus in buses:
-        if bus['completed_routes'] >= 3:
-                    continue
         if bus['current_speed'] < 40:
             bus['current_speed'] += random.uniform(3,6)
         else:
@@ -104,11 +103,12 @@ while any(bus['completed_routes'] < 3 for bus in buses):
             bus['current_speed'] * bus['traffic_factor']
         )
         
-        # Advance along the route by the full distance the bus can cover this
-        # 10-second step, crossing as many of the dense (~40 m) waypoints as the
-        # current speed allows. This way faster speed = more ground covered,
-        # instead of being capped at one waypoint per step.
-        budget_m = (speed / 3.6) * 10
+        # Advance along the route by the distance the bus covers in this
+        # 5-second step (matching the 5s write cadence below), crossing as many
+        # of the dense (~40 m) waypoints as the current speed allows. Keeping it
+        # real-time means each map update moves the bus a smaller, smoother step
+        # instead of teleporting ~100 m.
+        budget_m = (speed / 3.6) * 5
         arrived = False
 
         while budget_m > 0:
@@ -138,11 +138,9 @@ while any(bus['completed_routes'] < 3 for bus in buses):
                 bus['completed_routes'] += 1
                 print(
                     f"Bus {bus['bus_name']} completed "
-                    f"{bus['completed_routes']}/3 routes"
+                    f"{bus['completed_routes']} routes"
                 )
-                if bus['completed_routes'] >= 3:
-                    break
-                # Restart the route from the beginning.
+                # Loop the route again; the simulator runs until it's stopped.
                 bus['current_index'] = 0
                 bus['position'] = (
                     bus['waypoints'][0].lat,
@@ -216,7 +214,7 @@ while any(bus['completed_routes'] < 3 for bus in buses):
                     print(f"Station skipped: {station.name}")
 
         bus['time'] += timedelta(
-            seconds=10
+            seconds=5
         )
 
     db.commit()

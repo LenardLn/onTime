@@ -171,7 +171,11 @@ const UsersPage = () => {
         </Button>
       </div>
 
-      <DataTable columns={columns} data={users ?? []} />
+      <DataTable
+        columns={columns}
+        data={users ?? []}
+        searchPlaceholder={t("admin.search")}
+      />
 
       {/* Edit user dialog */}
       <Dialog

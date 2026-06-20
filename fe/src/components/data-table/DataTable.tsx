@@ -1,11 +1,13 @@
+import { useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
+  getFilteredRowModel,
   getPaginationRowModel,
   flexRender,
   type ColumnDef,
 } from "@tanstack/react-table";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/shadcn/button";
@@ -15,20 +17,27 @@ type DataTableProps<TData> = {
   columns: ColumnDef<TData, unknown>[];
   /** When set, the table paginates client-side with this many rows per page. */
   pageSize?: number;
+  /** When set, shows a search box that filters all columns client-side. */
+  searchPlaceholder?: string;
 };
 
 export function DataTable<TData>({
   data,
   columns,
   pageSize,
+  searchPlaceholder,
 }: DataTableProps<TData>) {
   const { t } = useTranslation();
   const paginated = pageSize !== undefined;
+  const [globalFilter, setGlobalFilter] = useState("");
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    state: { globalFilter },
+    onGlobalFilterChange: setGlobalFilter,
     ...(paginated
       ? {
           getPaginationRowModel: getPaginationRowModel(),
@@ -39,12 +48,21 @@ export function DataTable<TData>({
 
   const pageCount = table.getPageCount();
   const pageIndex = table.getState().pagination.pageIndex;
-  const totalRows = table.getRowModel().rows.length
-    ? data.length
-    : 0;
+  const totalRows = table.getFilteredRowModel().rows.length;
 
   return (
     <div className="mx-auto grid w-full max-w-[65vw] gap-4">
+      {searchPlaceholder && (
+        <div className="relative w-1/4 min-w-[200px]">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+          <input
+            value={globalFilter}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            placeholder={searchPlaceholder}
+            className="h-12 w-full rounded-md border border-input bg-background pl-11 pr-3 text-lg text-foreground outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+          />
+        </div>
+      )}
       <div className="overflow-x-auto rounded-xl border bg-card shadow-sm">
         <table className="w-full text-left">
           <thead className="bg-muted/50">
