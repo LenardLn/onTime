@@ -5,12 +5,14 @@ import chevronSvg from "@/assets/chevron.svg";
 import UtilityIcon from "../Icons/UtilityIcon";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import useLines from "@/hooks/admin/tanstack/useLines";
 
 const PageTitle = () => {
   const { theme } = useThemeContext();
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
+  const { data: lines } = useLines();
 
   const segments = location.pathname.split("/").filter(Boolean);
 
@@ -41,6 +43,12 @@ const PageTitle = () => {
   const segmentOverrides: Record<string, string> = { routes: "lines" };
 
   const label = (segment: string) => {
+    // Numeric segments are line ids (e.g. /admin/routes/27) — show the line's
+    // name instead of the raw id when we have it.
+    if (/^\d+$/.test(segment)) {
+      const line = lines?.find((l) => String(l.id) === segment);
+      return line?.name ?? segment;
+    }
     const key = segmentOverrides[segment] ?? segment;
     return t(`admin.${key}`, {
       defaultValue: segment.charAt(0).toUpperCase() + segment.slice(1),

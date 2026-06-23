@@ -18,6 +18,7 @@ import random
 from simulation.route_loader import load_route, load_stations
 from simulation.station_logic import is_near_station
 from models.db_schemas.Bus import Bus
+from models.db_schemas.Route import Route
 
 def passenger_probability(time):
 
@@ -37,27 +38,55 @@ def passenger_probability(time):
 
 
 db = SessionLocal()
-line_ids = [8, 13, 40, 50, 54]
+
+# Simulate every line that actually has a route drawn — no hard-coded ids, so
+# whatever lines an admin has created routes for get buses automatically.
+line_ids = [row[0] for row in db.query(Route.line_id).distinct().all()]
+
+# Any bus can run any route (any driver can drive any bus), so keep a global
+# pool and hand 5 buses to each route — preferring the line's own buses, then
+# topping up from the rest. Each bus is used on only one route so its bus_id
+# never appears on two lines at once.
+all_buses = db.query(Bus).all()
+used_bus_ids: set = set()
+
+BUSES_PER_ROUTE = 5
 
 buses = []
 
 for line_id in line_ids:
-
-    db_buses = db.query(
-        Bus
-    ).filter(
-        Bus.line_id == line_id
-    ).all()
 
     waypoints = load_route(
         db,
         line_id
     )
 
-    for bus_record, start_index in zip(db_buses, [0, 25, 50, 75, 100]):
+    # A route needs at least two points to move along.
+    if len(waypoints) < 2:
+        continue
 
-        if start_index >= len(waypoints) - 1:
-            continue
+    own = [
+        b for b in all_buses
+        if b.line_id == line_id and b.id not in used_bus_ids
+    ]
+    others = [
+        b for b in all_buses
+        if b.line_id != line_id and b.id not in used_bus_ids
+    ]
+    chosen = (own + others)[:BUSES_PER_ROUTE]
+    count = len(chosen)
+    if count == 0:
+        continue
+
+    stations = load_stations(db, line_id)
+
+    for i, bus_record in enumerate(chosen):
+
+        used_bus_ids.add(bus_record.id)
+
+        start_index = min((i * len(waypoints)) // count, len(waypoints) - 1)
+
+        start_index = min((i * len(waypoints)) // count, len(waypoints) - 1)
 
         buses.append(
             {
@@ -65,10 +94,7 @@ for line_id in line_ids:
                 "bus_name": bus_record.name,
                 "line_id": line_id,
                 "waypoints": waypoints,
-                "stations": load_stations(
-                    db,
-                    line_id
-                ),
+                "stations": stations,
                 "current_index": start_index,
                 "current_speed": 25,
                 "visited_stations": set(),

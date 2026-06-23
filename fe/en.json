@@ -156,6 +156,8 @@
     "noData": "No analytics data available yet",
     "csv": "CSV",
     "downloadCsv": "Download CSV",
+    "pdf": "PDF",
+    "downloadPdf": "Download as PDF",
     "downloadStarted": "Downloading \"{{name}}\"",
     "downloadFailed": "Download failed",
     "routes": "Routes",

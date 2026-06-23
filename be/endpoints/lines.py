@@ -81,7 +81,18 @@ async def delete_line(
         {"line_id": line_id}
     )
 
-    # 5. line
+    # 5. buses + their GPS history also reference the line via a foreign key,
+    # so they must go before the line itself or the delete fails.
+    db.execute(
+        text("DELETE FROM bus_locations WHERE line_id = :line_id"),
+        {"line_id": line_id}
+    )
+    db.execute(
+        text("DELETE FROM buses WHERE line_id = :line_id"),
+        {"line_id": line_id}
+    )
+
+    # 6. line
     db.delete(line)
 
     db.commit()
