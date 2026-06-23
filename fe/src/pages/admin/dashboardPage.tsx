@@ -243,7 +243,7 @@ const DashboardPage = () => {
               />
               <YAxis tickLine={false} axisLine={false} tick={axisTick} width={48} />
               <ChartTooltip
-                content={<ChartTooltipContent labelFormatter={(v) => hourLabel(Number(v))} />}
+                content={<ChartTooltipContent labelFormatter={(_, payload) => hourLabel(Number(payload?.[0]?.payload?.hour))} />}
               />
               <Area
                 dataKey="records"
@@ -335,7 +335,7 @@ const DashboardPage = () => {
               />
               <YAxis tickLine={false} axisLine={false} tick={axisTick} width={48} />
               <ChartTooltip
-                content={<ChartTooltipContent labelFormatter={(v) => hourLabel(Number(v))} />}
+                content={<ChartTooltipContent labelFormatter={(_, payload) => hourLabel(Number(payload?.[0]?.payload?.hour))} />}
               />
               <Line
                 dataKey="avg_speed"
@@ -401,7 +401,7 @@ const DashboardPage = () => {
               />
               <YAxis tickLine={false} axisLine={false} tick={axisTick} width={48} allowDecimals={false} />
               <ChartTooltip
-                content={<ChartTooltipContent labelFormatter={(v) => hourLabel(Number(v))} />}
+                content={<ChartTooltipContent labelFormatter={(_, payload) => hourLabel(Number(payload?.[0]?.payload?.hour))} />}
               />
               <Line
                 dataKey="active_buses"

@@ -316,9 +316,13 @@ const ViewMap = ({
 
       {userLocation && (
         <Marker latitude={userLocation.lat} longitude={userLocation.lon}>
-          {/* Bright red dot with a white ring + soft halo so "you are here"
-              stands out against the map and route lines. */}
-          <span className="block size-5 rounded-full border-2 border-white bg-red-600 shadow-[0_0_0_5px_rgba(220,38,38,0.35)]" />
+          {/* "You are here": a teal-blue dot (bus colour) with a yellow pulsing
+              ring (same animation as the live-buses indicator) so it stands out
+              on the map. */}
+          <span className="relative flex size-5">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#f59e0b] opacity-75" />
+            <span className="relative inline-flex size-5 rounded-full border-2 border-white bg-[#00c2cb]" />
+          </span>
         </Marker>
       )}
 
@@ -336,7 +340,9 @@ const ViewMap = ({
             id="walking-route-line"
             type="line"
             paint={{
-              "line-color": "#dc2626",
+              // Walking path in the bus icon's blue/teal so it reads as the
+              // "to your bus" path, distinct from the red bus routes.
+              "line-color": "#00c2cb",
               "line-width": 5,
               "line-dasharray": [1, 1.5],
             }}
@@ -355,7 +361,7 @@ const ViewMap = ({
         );
       })}
       {renderRoute(route)}
-      {routeData?.map((item, index: number) => {
+      {routeData?.map((item) => {
         const geojson: FeatureCollection<LineString> = {
           type: "FeatureCollection",
           features:
@@ -385,7 +391,8 @@ const ViewMap = ({
               id={layerId}
               type="line"
               paint={{
-                "line-color": index % 2 ? "red" : "green",
+                // All route lines are red.
+                "line-color": "red",
                 "line-width": 4,
               }}
             />

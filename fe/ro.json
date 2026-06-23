@@ -157,6 +157,8 @@
     "noData": "Nu există încă date de analiză",
     "csv": "CSV",
     "downloadCsv": "Descarcă CSV",
+    "pdf": "PDF",
+    "downloadPdf": "Descarcă ca PDF",
     "downloadStarted": "Se descarcă \"{{name}}\"",
     "downloadFailed": "Descărcarea a eșuat",
     "routes": "Trasee",

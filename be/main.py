@@ -52,3 +52,20 @@ app.include_router(simulation.router)
 app.include_router(users.router)
 app.include_router(analytics.router)
 app.include_router(buses.router)
+
+
+@app.on_event("startup")
+def warm_analytics_cache():
+    """Precompute the analytics snapshot in the background on startup so the
+    first dashboard load (e.g. right after a free-tier cold start) hits a warm
+    cache instead of waiting on the heavy ~130k-row computation."""
+    import threading
+    import analytics_service
+
+    def _warm():
+        try:
+            analytics_service.get_overview()
+        except Exception:
+            pass
+
+    threading.Thread(target=_warm, daemon=True).start()
